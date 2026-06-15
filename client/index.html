@@ -653,7 +653,7 @@
     <span class="stat-pill"><span class="stat-dot"></span><b id="stat-online">—</b>&nbsp;players online</span>
     <span class="stat-pill"><span class="stat-dot"></span><b id="stat-monthly">—</b>&nbsp;players monthly</span>
   </div>
-  <div id="ca-pill">CA:</div>
+  <div id="ca-pill" onclick="window.daimyoCopyCA()" title="Click to copy">CA: 0xbc3ed2770b113fa60c461ebd4734429cb4b5cb07</div>
   <div id="wallet-msg"></div>
 </div>
 
@@ -697,7 +697,7 @@
 <script>
 /* ── Landing / wallet-gate / username / server flow ─────────────────────────── */
 (function () {
-  const TOKEN = '0xad7d9796c62f2200b5885838a8165620b6bacba3';
+  const TOKEN = '0xbc3ed2770b113fa60c461ebd4734429cb4b5cb07';
   const BASE_RPC = 'https://mainnet.base.org';
   const REQUIRED = 1000n;
   let wallet = null;
