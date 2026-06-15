@@ -52,11 +52,16 @@ app.post('/api/seen', (req, res) => {
   recordSeen(req.body && req.body.wallet);
   res.json({ ok: true });
 });
+const SERVERS = ['Edo', 'Kyoto', 'Osaka', 'Sapporo'];
+
 app.get('/api/stats', (req, res) => {
   const online = Object.keys(game.players).length;                 // real: currently connected players
   const cutoff = Date.now() - 30 * 24 * 60 * 60 * 1000;            // last 30 days
   const monthly = Object.values(seen).filter(t => t >= cutoff).length; // real: unique wallets that played
-  res.json({ online, monthly });
+  const servers = {};                                              // real: players currently on each server
+  SERVERS.forEach(s => { servers[s] = 0; });
+  Object.values(game.players).forEach(p => { if (servers[p.server] !== undefined) servers[p.server]++; });
+  res.json({ online, monthly, servers });
 });
 
 const TICK_RATE = 20; // 20 ticks/sec
@@ -65,10 +70,12 @@ const PLAYER_SPEED = 3;
 io.on('connection', (socket) => {
   const playerId = uuidv4();
   const spawn = game.getSpawnPoint();
+  const server = SERVERS.includes(socket.handshake.query.server) ? socket.handshake.query.server : SERVERS[0];
 
   const player = {
     id: playerId,
     name: 'Ronin',
+    server,
     x: spawn.x,
     y: spawn.y,
     clan: null,
@@ -102,6 +109,17 @@ io.on('connection', (socket) => {
     if (typeof name !== 'string') return;
     game.players[playerId].name = name.slice(0, 20);
     io.emit('playerUpdate', { id: playerId, name: game.players[playerId].name });
+  });
+
+  // Character customization (clothes / hat / shoes / hair / skin).
+  socket.on('customize', (custom) => {
+    const p = game.players[playerId];
+    if (!p || typeof custom !== 'object' || custom === null) return;
+    const keys = ['outfit', 'pants', 'shoe', 'hat', 'hair', 'skin'];
+    const clean = {};
+    for (const k of keys) { const v = custom[k]; if (Number.isInteger(v) && v >= 0 && v < 64) clean[k] = v; }
+    p.custom = clean;
+    io.emit('playerUpdate', { id: playerId, custom: clean });
   });
 
   socket.on('move', ({ x, y }) => {
@@ -230,7 +248,7 @@ setInterval(() => {
   io.emit('tick', {
     players: playerList.map(p => ({
       id: p.id, x: p.x, y: p.y, name: p.name, color: p.color, level: p.level,
-      clan: p.clan, chatMsg: p.chatTimer > 0 ? p.chatMsg : '',
+      clan: p.clan, chatMsg: p.chatTimer > 0 ? p.chatMsg : '', custom: p.custom || null,
     }))
   });
 }, 1000 / TICK_RATE);

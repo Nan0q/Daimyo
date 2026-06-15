@@ -516,7 +516,7 @@
 
 <!-- Action bar -->
 <div id="action-bar">
-  <button class="action-btn" onclick="goHome()"><span class="ab-ico">🏯</span>Home</button>
+  <button class="action-btn" onclick="openCharacter()"><span class="ab-ico">🧍</span>Character</button>
   <button class="action-btn" onclick="recruitSoldiers()"><span class="ab-ico">⚔️</span>Recruit<small>20g</small></button>
   <button class="action-btn" onclick="openClanPanel()"><span class="ab-ico">🛡️</span>Clan</button>
   <button class="action-btn" onclick="toggleFullmap()"><span class="ab-ico">🗺️</span>Map<small>M</small></button>
@@ -556,6 +556,65 @@
   <div id="npc-d-text"></div>
   <div id="npc-d-actions"></div>
 </div>
+
+<!-- Character / customization page -->
+<div id="character-screen">
+  <div class="char-modal">
+    <div class="char-left">
+      <div class="char-name" id="char-name">Warrior</div>
+      <canvas id="char-canvas"></canvas>
+      <div class="char-sub">Your character</div>
+    </div>
+    <div class="char-right">
+      <h2>👘 Customize</h2>
+      <div id="custom-options"></div>
+      <h2 style="margin-top:16px">🎒 Your Loot</h2>
+      <div class="loot-grid">
+        <div class="loot-item"><span class="li-ic">🪙</span><b id="loot-gold">0</b><small>Gold</small></div>
+        <div class="loot-item"><span class="li-ic">🌾</span><b id="loot-rice">0</b><small>Rice</small></div>
+        <div class="loot-item"><span class="li-ic">⚔️</span><b id="loot-soldiers">0</b><small>Soldiers</small></div>
+        <div class="loot-item"><span class="li-ic">🏯</span><b id="loot-lands">0</b><small>Lands</small></div>
+        <div class="loot-item"><span class="li-ic">⭐</span><b id="loot-level">1</b><small>Level</small></div>
+        <div class="loot-item"><span class="li-ic">🛡️</span><b id="loot-clan">—</b><small>Clan</small></div>
+      </div>
+      <button class="char-return" onclick="closeCharacter()">▸ Return to Game</button>
+    </div>
+  </div>
+</div>
+<style>
+  #character-screen { position: fixed; inset: 0; z-index: 320; display: none; align-items: center; justify-content: center;
+    background: rgba(4,7,14,0.86); backdrop-filter: blur(5px); }
+  .char-modal { display: flex; gap: 0; width: 860px; max-width: 94vw; height: 540px; max-height: 90vh;
+    background: linear-gradient(160deg, rgba(24,28,46,0.96), rgba(12,15,26,0.96));
+    border: 1.5px solid rgba(120,150,255,0.32); border-radius: 18px; overflow: hidden;
+    box-shadow: 0 18px 60px rgba(0,0,0,0.6); }
+  .char-left { width: 320px; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    background: radial-gradient(ellipse at 50% 35%, rgba(70,100,170,0.28), transparent 70%); border-right: 1px solid rgba(120,150,255,0.18); padding: 16px; }
+  .char-name { font-family: 'Cinzel', serif; font-size: 22px; color: #ffd24a; letter-spacing: 1px; margin-bottom: 4px; }
+  #char-canvas { width: 280px; height: 380px; display: block; }
+  .char-sub { font-family: 'Rajdhani', sans-serif; font-size: 12px; color: #8e9bc8; letter-spacing: 1px; }
+  .char-right { flex: 1; padding: 22px 24px; overflow-y: auto; }
+  .char-right h2 { font-family: 'Rajdhani', sans-serif; font-size: 15px; font-weight: 700; letter-spacing: 1px; color: #cfe0ff; margin-bottom: 10px; }
+  .cz-row { display: flex; align-items: center; gap: 10px; margin-bottom: 9px; }
+  .cz-label { width: 64px; font-family: 'Rajdhani', sans-serif; font-size: 13px; font-weight: 700; color: #9fb2d8; }
+  .cz-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .cz-chip { width: 24px; height: 24px; border-radius: 7px; cursor: pointer; border: 2px solid transparent; box-shadow: inset 0 0 0 1px rgba(0,0,0,0.4); transition: transform .1s; }
+  .cz-chip:hover { transform: scale(1.12); }
+  .cz-chip.sel { border-color: #ffd24a; box-shadow: 0 0 10px rgba(255,210,74,0.5); }
+  .cz-chip.txt { width: auto; height: auto; padding: 4px 10px; background: rgba(255,255,255,0.06); color: #dfe6ff;
+    font-family: 'Rajdhani', sans-serif; font-size: 12px; font-weight: 700; border: 1.5px solid rgba(120,150,255,0.3); }
+  .cz-chip.txt.sel { border-color: #ffd24a; color: #ffe9a8; box-shadow: none; }
+  .loot-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 9px; }
+  .loot-item { background: rgba(255,255,255,0.05); border: 1px solid rgba(120,150,255,0.18); border-radius: 11px;
+    padding: 9px 6px; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 2px; }
+  .loot-item .li-ic { font-size: 18px; }
+  .loot-item b { font-family: 'Rajdhani', sans-serif; font-size: 17px; color: #fff; font-variant-numeric: tabular-nums; }
+  .loot-item small { font-family: 'Rajdhani', sans-serif; font-size: 10px; letter-spacing: 1px; color: #8e9bc8; text-transform: uppercase; }
+  .char-return { width: 100%; margin-top: 16px; padding: 12px; border: none; border-radius: 12px; cursor: pointer;
+    font-family: 'Rajdhani', sans-serif; font-size: 16px; font-weight: 700; color: #fff;
+    background: linear-gradient(135deg, #ff8a1e, #ef6a0e); box-shadow: 0 5px 18px rgba(240,110,16,0.4); }
+  .char-return:hover { transform: translateY(-1px); }
+</style>
 
 <!-- Full Map overlay -->
 <div id="fullmap-overlay">
@@ -687,6 +746,7 @@
     try {
       const accts = await window.ethereum.request({ method: 'eth_requestAccounts' });
       wallet = accts[0];
+      window.daimyoWallet = wallet;
       cbtn.textContent = wallet.slice(0, 6) + '…' + wallet.slice(-4);
       btn.textContent = 'Checking $DYMO…';
       if (!(await ownsTokens(wallet))) { msg('You must own 1,000 $DYMO to play.', 'err'); btn.disabled = false; btn.textContent = old; return; }
@@ -709,18 +769,20 @@
     goServers();
   };
 
-  function goServers() {
-    const servers = [{ name: 'Edo', load: 0.92 }, { name: 'Kyoto', load: 0.6 }, { name: 'Osaka', load: 0.35 }, { name: 'Sapporo', load: 0.15 }];
-    const base = window.__online || 200;
+  const SERVERS = ['Edo', 'Kyoto', 'Osaka', 'Sapporo'];
+  async function goServers() {
+    showScreen('server-screen');
+    let counts = {};
+    try { counts = (await (await fetch('/api/stats')).json()).servers || {}; } catch {}
+    const max = Math.max(10, ...Object.values(counts)); // bar scale
     const list = $('server-list'); list.innerHTML = '';
-    servers.forEach(s => {
-      const count = Math.max(1, Math.round(base * s.load));
+    SERVERS.forEach(name => {
+      const count = counts[name] || 0;
       const row = document.createElement('div'); row.className = 'server-row';
-      row.innerHTML = `<span class="sv-name">⛩ ${s.name}</span><span class="sv-count"><span class="sv-bar"><i style="width:${Math.round(s.load * 100)}%"></i></span>${count} online</span>`;
-      row.onclick = startGame;
+      row.innerHTML = `<span class="sv-name">⛩ ${name}</span><span class="sv-count"><span class="sv-bar"><i style="width:${Math.round(count / max * 100)}%"></i></span>${count} online</span>`;
+      row.onclick = () => { window.daimyoServer = name; startGame(); };
       list.appendChild(row);
     });
-    showScreen('server-screen');
   }
 
   function startGame() {

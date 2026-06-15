@@ -438,6 +438,7 @@ let socket, myId, myPlayer;
 let players = {}, territories = {}, clans = {}, mapData = null, serverBuildings = [], serverBridges = [];
 let playerMeshes = {}, playerLabels = {}, chatLabels = {}, chatTimers = {};
 let buildingMeshes = [], terrMeshes = {};
+let myCustom = null; // player's chosen outfit { outfit, pants, shoe, hat, hair, skin }
 const obstacles = []; // { x, z, r } solid circular colliders (trees, rocks, props)
 function addObstacle(x, z, r) { obstacles.push({ x, z, r }); }
 // True if tile (tx,ty) or any neighbour is a path (road/town/dirt) — used to keep
@@ -1169,20 +1170,36 @@ function buildTerritoryOverlays() {
 const SKIN_TONES = [0xf5cba7, 0xe8b08a, 0xd9a066, 0xc68642, 0x8d5524, 0xffe0bd];
 const HAIR_COLORS = [0x1a0a00, 0x3b2412, 0x6b4423, 0x111111, 0x4a4a4a, 0x7a2b1a];
 const PANTS_COLORS = [0x2c3e50, 0x3a2f22, 0x1f3a2f, 0x402030, 0x23303f, 0x4a3a1a];
+// Wardrobe options the player can choose on the Character page.
+const CUSTOM = {
+  outfit: [0xc0392b, 0x2e86c1, 0x27ae60, 0x8e44ad, 0xe67e22, 0x34495e, 0xe84393, 0x16a085, 0x2c3e50, 0xecf0f1, 0xf1c40f, 0x111111],
+  pants:  [0x2c3e50, 0x3a2f22, 0x1f3a2f, 0x402030, 0x23303f, 0x4a3a1a, 0x111111, 0x6b4423],
+  shoe:   [0x3a2415, 0x111111, 0x6b4423, 0x8b1a1a, 0x2c3e50, 0xe8e8e8],
+  hat:    ['None', 'Straw Hat', 'Samurai Helmet', 'Topknot'],
+  hair:   HAIR_COLORS.slice(),
+  skin:   SKIN_TONES.slice(),
+};
+window.DAIMYO_CUSTOM = CUSTOM;
 
 function limbPivot(x, y, z) { const p = new THREE.Group(); p.position.set(x, y, z); return p; }
 
-function createCharacter(color, isMe, seed) {
+// `custom` (optional) = { outfit, pants, shoe, hat, hair, skin } indices into CUSTOM.
+function createCharacter(color, isMe, seed, custom) {
   // Articulated procedural villager (the original character model).
   const s = seed || color || Math.random();
-  const col = new THREE.Color(color || '#e74c3c');
+  custom = custom || {};
+  const pick = (key, dfltHex) => custom[key] != null && CUSTOM[key][custom[key]] != null ? CUSTOM[key][custom[key]] : dfltHex;
+  const outfitHex = custom.outfit != null && CUSTOM.outfit[custom.outfit] != null ? CUSTOM.outfit[custom.outfit] : (color || '#e74c3c');
+  const col = new THREE.Color(outfitHex);
   const body  = std(col, { roughness: 0.7 });
   const sleeve = std(col.clone().multiplyScalar(0.7), { roughness: 0.7 });
-  const skin  = std(SKIN_TONES[Math.floor(seedRand(s, 2) * SKIN_TONES.length)], { roughness: 0.85 });
-  const pants = std(PANTS_COLORS[Math.floor(seedRand(s, 4) * PANTS_COLORS.length)], { roughness: 0.85 });
-  const hairC = HAIR_COLORS[Math.floor(seedRand(s, 6) * HAIR_COLORS.length)];
+  const skin  = std(pick('skin', SKIN_TONES[Math.floor(seedRand(s, 2) * SKIN_TONES.length)]), { roughness: 0.85 });
+  const pants = std(pick('pants', PANTS_COLORS[Math.floor(seedRand(s, 4) * PANTS_COLORS.length)]), { roughness: 0.85 });
+  const hairC = pick('hair', HAIR_COLORS[Math.floor(seedRand(s, 6) * HAIR_COLORS.length)]);
   const hair  = std(hairC, { roughness: 0.95 });
-  const shoe  = std(0x3a2415, { roughness: 0.9 });
+  const shoe  = std(pick('shoe', 0x3a2415), { roughness: 0.9 });
+  // Hat: explicit choice, else a seeded default (0 None,1 Straw,2 Samurai,3 Topknot).
+  const hatIdx = custom.hat != null ? custom.hat : [1, 2, 3, 0][Math.floor(seedRand(s, 8) * 4)];
 
   const g = new THREE.Group();
   // Soft contact shadow
@@ -1225,15 +1242,14 @@ function createCharacter(color, isMe, seed) {
   const hairCap = box(0.98, 0.34, 0.98, hair); hairCap.position.y = 4.12; frame.add(hairCap);
   [-0.46, 0.46].forEach(hx => { const side = box(0.08, 0.5, 0.9, hair); side.position.set(hx, 3.72, 0); frame.add(side); });
 
-  // ── Seeded headgear / accessory variety ──
-  const look = Math.floor(seedRand(s, 8) * 4);
-  if (look === 0) { // straw farmer hat
+  // ── Headgear (0 None, 1 Straw Hat, 2 Samurai Helmet, 3 Topknot) ──
+  if (hatIdx === 1) { // straw farmer hat
     const brim = cyl(1.5, 1.5, 0.08, 12, std(0xcBae5e, { roughness: 1 })); brim.position.y = 4.3; frame.add(brim);
     const cap = cone(0.7, 0.7, 12, std(0xc7a84e, { roughness: 1 })); cap.position.y = 4.7; frame.add(cap);
-  } else if (look === 1) { // samurai helmet
+  } else if (hatIdx === 2) { // samurai helmet
     const helm = box(1.04, 0.42, 1.04, std(0x2a2a30, { roughness: 0.5, metalness: 0.4 })); helm.position.y = 4.2; frame.add(helm);
     const crest = box(0.12, 0.5, 0.5, MAT.gold); crest.position.set(0, 4.6, -0.1); frame.add(crest);
-  } else if (look === 2) { // topknot
+  } else if (hatIdx === 3) { // topknot
     const knot = sph(0.2, hair); knot.position.y = 4.4; frame.add(knot);
   }
   // Some carry a sword on the back
@@ -1246,8 +1262,15 @@ function createCharacter(color, isMe, seed) {
   return g;
 }
 function spawnOrUpdatePlayer(p) {
+  const customKey = JSON.stringify(p.custom || null);
+  // Rebuild the mesh if the player changed their outfit.
+  if (playerMeshes[p.id] && playerMeshes[p.id].userData.customKey !== customKey) {
+    scene.remove(playerMeshes[p.id]);
+    delete playerMeshes[p.id]; delete playerLabels[p.id]; delete chatLabels[p.id];
+  }
   if (!playerMeshes[p.id]) {
-    const mesh = createCharacter(p.color, p.id === myId, p.id);
+    const mesh = createCharacter(p.color, p.id === myId, p.id, p.custom);
+    mesh.userData.customKey = customKey;
     scene.add(mesh); playerMeshes[p.id] = mesh;
     const el = document.createElement('div'); el.className = 'player-label' + (p.id === myId ? ' mine' : '');
     el.innerHTML = `<span class="pl-lvl"></span><span class="pl-name"></span>`;
@@ -1734,6 +1757,7 @@ function moveInput() {
 
 function processOutdoor(delta) {
   if (!myPlayer || !socket || chatFocused) return false;
+  if (document.getElementById('character-screen').style.display === 'flex') return false;
   let { dx, dz } = moveInput();
   if (!dx && !dz) return false;
   const len = Math.hypot(dx, dz); dx = dx / len * SPEED_OUT * delta; dz = dz / len * SPEED_OUT * delta;
@@ -1832,6 +1856,7 @@ function updateCamera() {
 document.addEventListener('keydown', e => {
   keys[e.key] = true;
   if (chatFocused) return;
+  if (document.getElementById('character-screen').style.display === 'flex') { if (e.key === 'Escape') window.closeCharacter(); return; }
   if (e.key === 'e' || e.key === 'E') {
     // Context: enter/exit a building when next to one, otherwise play an emote.
     if (insideBuilding || nearBuilding) handleInteract();
@@ -1886,7 +1911,7 @@ function showSelHighlight(t) {
 
 // ─── Socket ───────────────────────────────────────────────────────────────────
 function connectSocket(name) {
-  socket = io();
+  socket = io({ query: { server: window.daimyoServer || 'Edo' } });
   socket.on('connect', () => {
     socket.emit('setName', name);
     sysMsg('Welcome to Daimyo! WASD to move · E to emote/enter · F to talk to NPCs.');
@@ -1897,6 +1922,9 @@ function connectSocket(name) {
     myId = data.playerId; mapData = data.mapData; territories = data.territories;
     players = data.players; clans = data.clans; serverBuildings = data.buildings || []; serverBridges = data.bridges || [];
     myPlayer = players[myId];
+    // Load saved outfit for this wallet and apply it.
+    myCustom = loadMyCustom();
+    if (myCustom) { myPlayer.custom = myCustom; socket.emit('customize', myCustom); }
     // Structures FIRST so vegetation can avoid overlapping them.
     buildTerrain(mapData);
     placeBuildings(serverBuildings);
@@ -2020,6 +2048,104 @@ window.goHome = () => {
   if (socket) socket.emit('move', { x: myPlayer.x, y: myPlayer.y });
   notify('Returned to the Capital', '#ffd700');
 };
+
+// ─── Character page (customize + loot) ────────────────────────────────────────
+const customKey = () => 'daimyo_custom_' + (window.daimyoWallet || window.daimyoUsername || 'guest').toLowerCase();
+function loadMyCustom() { try { return JSON.parse(localStorage.getItem(customKey())) || null; } catch { return null; } }
+function saveMyCustom(c) { try { localStorage.setItem(customKey(), JSON.stringify(c)); } catch {} }
+
+let pvRenderer, pvScene, pvCamera, pvChar, pvRAF, pvSpin = 0;
+function ensurePreview() {
+  if (pvRenderer) return;
+  const cv = document.getElementById('char-canvas');
+  pvRenderer = new THREE.WebGLRenderer({ canvas: cv, antialias: true, alpha: true });
+  pvRenderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+  pvScene = new THREE.Scene();
+  pvCamera = new THREE.PerspectiveCamera(38, 1, 0.1, 100);
+  pvCamera.position.set(0, 3.4, 9.5); pvCamera.lookAt(0, 2.6, 0);
+  pvScene.add(new THREE.HemisphereLight(0xffffff, 0x445566, 1.1));
+  const dl = new THREE.DirectionalLight(0xffffff, 1.2); dl.position.set(4, 8, 6); pvScene.add(dl);
+}
+function resizePreview() {
+  if (!pvRenderer) return;
+  const cv = document.getElementById('char-canvas');
+  const w = cv.clientWidth || 300, h = cv.clientHeight || 360;
+  pvRenderer.setSize(w, h, false); pvCamera.aspect = w / h; pvCamera.updateProjectionMatrix();
+}
+function rebuildPreviewChar() {
+  ensurePreview();
+  if (pvChar) pvScene.remove(pvChar);
+  pvChar = createCharacter(myPlayer?.color || '#e74c3c', false, myId || 'me', myCustom || {});
+  // hide the contact-shadow disc in the preview (first child)
+  if (pvChar.children[0]) pvChar.children[0].visible = false;
+  pvScene.add(pvChar);
+}
+function previewLoop() {
+  pvRAF = requestAnimationFrame(previewLoop);
+  if (!pvRenderer || !pvChar) return;
+  pvSpin += 0.012; pvChar.rotation.y = pvSpin;
+  pvRenderer.render(pvScene, pvCamera);
+}
+
+const CUSTOM_GROUPS = [
+  { key: 'hat',    label: 'Hat',     swatch: false },
+  { key: 'outfit', label: 'Clothes', swatch: true },
+  { key: 'shoe',   label: 'Shoes',   swatch: true },
+  { key: 'hair',   label: 'Hair',    swatch: true },
+  { key: 'skin',   label: 'Skin',    swatch: true },
+];
+function buildCustomUI() {
+  const wrap = document.getElementById('custom-options'); wrap.innerHTML = '';
+  myCustom = myCustom || {};
+  CUSTOM_GROUPS.forEach(g => {
+    const row = document.createElement('div'); row.className = 'cz-row';
+    const opts = CUSTOM[g.key];
+    let chips = '';
+    opts.forEach((opt, i) => {
+      const sel = (myCustom[g.key] ?? -99) === i ? ' sel' : '';
+      if (g.swatch) chips += `<span class="cz-chip${sel}" data-k="${g.key}" data-i="${i}" style="background:#${(opt).toString(16).padStart(6,'0')}"></span>`;
+      else chips += `<span class="cz-chip txt${sel}" data-k="${g.key}" data-i="${i}">${opt}</span>`;
+    });
+    row.innerHTML = `<div class="cz-label">${g.label}</div><div class="cz-chips">${chips}</div>`;
+    wrap.appendChild(row);
+  });
+  wrap.querySelectorAll('.cz-chip').forEach(ch => ch.onclick = () => {
+    const k = ch.dataset.k, i = parseInt(ch.dataset.i, 10);
+    myCustom[k] = i;
+    buildCustomUI(); rebuildPreviewChar();
+  });
+}
+function updateLootPanel() {
+  const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+  set('loot-gold', myPlayer?.gold ?? 0);
+  set('loot-rice', myPlayer?.rice ?? 0);
+  set('loot-soldiers', myPlayer?.soldiers ?? 0);
+  set('loot-lands', Object.values(territories).filter(t => t.ownerId === myId).length);
+  set('loot-level', myPlayer?.level ?? 1);
+  const clan = myPlayer?.clan && clans[myPlayer.clan];
+  set('loot-clan', clan ? clan.name : '—');
+  document.getElementById('char-name').textContent = myPlayer?.name || 'Warrior';
+}
+window.openCharacter = () => {
+  if (!myPlayer) return;
+  if (insideBuilding) return notify('Exit the building first (press E)', '#ff6060');
+  myCustom = myCustom || loadMyCustom() || {};
+  document.getElementById('character-screen').style.display = 'flex';
+  buildCustomUI(); updateLootPanel();
+  ensurePreview(); resizePreview(); rebuildPreviewChar();
+  if (!pvRAF) previewLoop();
+};
+window.closeCharacter = () => {
+  const scr = document.getElementById('character-screen');
+  if (scr.style.display !== 'flex') return;
+  scr.style.display = 'none';
+  if (pvRAF) { cancelAnimationFrame(pvRAF); pvRAF = null; } // stop preview render
+  // Save + broadcast the chosen outfit so it shows in-world.
+  saveMyCustom(myCustom);
+  if (myPlayer) myPlayer.custom = myCustom;
+  if (socket) socket.emit('customize', myCustom);
+};
+
 window.openClanPanel = () => {
   const panel = document.getElementById('clan-panel'), content = document.getElementById('clan-content');
   panel.style.display = 'block';
