@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(if \\(-not $?\\) { \"Directory is empty or new\" })",
+      "PowerShell(try { $r = Invoke-WebRequest -Uri \"https://raw.githubusercontent.com/mrdoob/three.js/master/package.json\" -UseBasicParsing -TimeoutSec 15; \"Network OK: $\\($r.StatusCode\\)\" } catch { \"Network FAIL: $\\($_.Exception.Message\\)\" })",
+      "Bash(curl -s -o /dev/null -w \"tree-big.gltf: %{http_code}\\\\n\" http://localhost:3000/assets/models/tree-big.gltf)",
+      "Bash(curl -s -o /dev/null -w \"house-5.gltf: %{http_code}\\\\n\" http://localhost:3000/assets/models/house-5.gltf)",
+      "WebSearch"
+    ]
+  }
+}

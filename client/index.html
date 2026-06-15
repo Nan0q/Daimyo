@@ -1,0 +1,762 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Daimyo</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700&family=Cinzel:wght@400;600;700&family=Rajdhani:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: #0a0f1a; overflow: hidden; font-family: 'Rajdhani', sans-serif; }
+
+    #renderer-mount { position: fixed; inset: 0; }
+    #renderer-mount canvas { display: block; }
+
+    /* CSS2D label layer */
+    #label-layer {
+      position: fixed; inset: 0; pointer-events: none; overflow: hidden;
+    }
+    .player-label {
+      font-family: 'Rajdhani', sans-serif; font-size: 13px; font-weight: 700;
+      white-space: nowrap; pointer-events: none; transform: translateX(-50%);
+      display: flex; align-items: center; gap: 5px;
+    }
+    .player-label .pl-lvl {
+      font-size: 10px; font-weight: 800; color: #0a1226;
+      background: linear-gradient(135deg, #ffd24a, #ffb01f);
+      padding: 1px 6px; border-radius: 7px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.5);
+    }
+    .player-label .pl-name {
+      color: #fff; text-shadow: 0 0 4px #000, 0 1px 2px #000;
+    }
+    .player-label.mine .pl-name { color: #57e0ff; }
+    .chat-bubble {
+      font-family: 'Rajdhani', sans-serif; font-size: 12px; font-weight: 500;
+      color: #f5e6c8; background: rgba(0,0,0,0.78);
+      border: 1px solid rgba(255,215,0,0.4); border-radius: 8px;
+      padding: 4px 10px; max-width: 160px; word-wrap: break-word;
+      white-space: normal; text-align: center;
+      pointer-events: none; transform: translateX(-50%);
+    }
+    .building-label {
+      font-family: 'Cinzel', serif; font-size: 11px; font-weight: 600;
+      color: #ffd700; text-shadow: 0 0 6px #000, 0 1px 3px #000;
+      white-space: nowrap; pointer-events: none;
+      transform: translateX(-50%);
+    }
+    .npc-label {
+      display: flex; flex-direction: column; align-items: center; gap: 2px;
+      pointer-events: none; transform: translateX(-50%); white-space: nowrap;
+    }
+    .npc-label .npc-badge {
+      font-family: 'Rajdhani', sans-serif; font-size: 9px; font-weight: 700;
+      letter-spacing: 1px; color: #0a1f10;
+      background: linear-gradient(135deg, #7be86a, #46c24a);
+      padding: 1px 7px; border-radius: 8px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.6);
+    }
+    .npc-label .npc-name {
+      font-family: 'Cinzel', serif; font-size: 12px; font-weight: 700;
+      color: #d6ffce; text-shadow: 0 0 5px #000, 0 1px 2px #000;
+    }
+
+    /* ── HUD (modern, colorful) ────────────────────── */
+    #hud {
+      position: fixed; top: 16px; left: 16px;
+      background: rgba(20,24,44,0.72);
+      border: 1.5px solid rgba(120,150,255,0.28);
+      border-radius: 18px; padding: 12px 12px 10px; width: 210px;
+      backdrop-filter: blur(12px);
+      box-shadow: 0 8px 28px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.08);
+    }
+    #hud-name {
+      font-family: 'Rajdhani', sans-serif; font-size: 17px; font-weight: 700;
+      color: #fff; margin-bottom: 10px; letter-spacing: 0.5px;
+      display: flex; align-items: center; gap: 8px; padding: 0 4px;
+    }
+    #hud-name::before {
+      content: '🏯'; font-size: 18px;
+      filter: drop-shadow(0 0 6px rgba(120,180,255,0.6));
+    }
+    .stat-row {
+      display: flex; justify-content: space-between; align-items: center;
+      font-family: 'Rajdhani', sans-serif; font-size: 13px; font-weight: 600;
+      color: #cfd6f0; margin-bottom: 6px;
+      background: rgba(255,255,255,0.05); border-radius: 11px;
+      padding: 7px 11px; border-left: 3px solid var(--accent, #6aa0ff);
+    }
+    .stat-row:nth-of-type(1) { --accent: #ffcb3d; }   /* gold */
+    .stat-row:nth-of-type(2) { --accent: #59e07a; }   /* rice */
+    .stat-row:nth-of-type(3) { --accent: #ff6b6b; }   /* soldiers */
+    .stat-row:nth-of-type(4) { --accent: #4dc3ff; }   /* lands */
+    .stat-row:last-of-type { margin-bottom: 0; }
+    .stat-val {
+      color: #fff; font-weight: 700; font-size: 15px;
+      font-variant-numeric: tabular-nums;
+    }
+    .stat-icon { margin-right: 7px; font-size: 15px; }
+
+    #clan-badge {
+      margin-top: 10px; padding: 7px 10px; border-radius: 11px;
+      font-family: 'Rajdhani', sans-serif; font-size: 12px; font-weight: 700;
+      text-align: center; letter-spacing: 0.5px;
+      border: 1px solid rgba(255,255,255,0.22); color: #fff;
+      background: rgba(255,255,255,0.06);
+    }
+
+    /* ── Minimap ───────────────────────────────── */
+    #minimap-wrap {
+      position: fixed; top: 16px; right: 16px;
+      width: 190px; height: 190px; border-radius: 50%;
+      border: 3px solid rgba(200,160,60,0.7); overflow: hidden;
+      box-shadow: 0 0 0 1px rgba(0,0,0,0.6), 0 6px 24px rgba(0,0,0,0.6);
+      background: #111a0e;
+    }
+    #minimap { display: block; width: 100%; height: 100%; }
+
+    /* ── Territory Panel ───────────────────────── */
+    #territory-panel {
+      position: fixed; top: 222px; right: 16px;
+      background: rgba(20,24,44,0.78);
+      border: 1.5px solid rgba(120,150,255,0.28);
+      border-radius: 18px; padding: 15px; width: 232px;
+      backdrop-filter: blur(12px); display: none;
+      box-shadow: 0 8px 28px rgba(0,0,0,0.4);
+    }
+    #territory-panel h3 {
+      font-family: 'Rajdhani', sans-serif; font-size: 16px; font-weight: 700; color: #fff;
+      margin-bottom: 10px; letter-spacing: 0.3px;
+    }
+    .tp-row { font-family: 'Rajdhani', sans-serif; font-size: 13px; font-weight: 600; color: #aab4d8; margin-bottom: 5px; }
+    .tp-row span { color: #fff; font-weight: 700; }
+    .game-btn {
+      display: block; width: 100%; padding: 10px;
+      margin-top: 8px; border-radius: 12px;
+      font-family: 'Rajdhani', sans-serif; font-size: 13px; font-weight: 700;
+      letter-spacing: 0.3px; cursor: pointer; border: 1.5px solid;
+      transition: all 0.14s; backdrop-filter: blur(6px);
+    }
+    .game-btn:hover { transform: translateY(-2px); }
+    .game-btn.gold {
+      background: rgba(40,60,100,0.6); border-color: rgba(120,150,255,0.4);
+      color: #eaf0ff;
+    }
+    .game-btn.gold:hover { background: rgba(40,70,120,0.8); border-color: #46e0ff; box-shadow: 0 0 16px rgba(70,224,255,0.3); }
+    .game-btn.danger {
+      background: rgba(120,40,55,0.5); border-color: rgba(255,100,120,0.45);
+      color: #ffd0d8;
+    }
+    .game-btn.danger:hover { background: rgba(150,45,60,0.7); border-color: #ff6b8a; box-shadow: 0 0 16px rgba(255,90,120,0.3); }
+    .game-btn.close-btn {
+      background: rgba(60,66,90,0.45); border-color: rgba(140,150,190,0.35);
+      color: #aab; margin-top: 4px;
+    }
+
+    /* ── Chat (transparent, sits above the buttons) ── */
+    #chat-box {
+      position: fixed; bottom: 92px; left: 16px; width: 380px;
+      background: transparent; border: none; border-radius: 12px; overflow: hidden;
+    }
+    #chat-log {
+      height: 92px; overflow-y: auto; padding: 6px 8px;
+      font-family: 'Rajdhani', sans-serif; font-size: 14px; font-weight: 600; color: #eef2ff;
+      text-shadow: 0 1px 3px #000, 0 0 6px rgba(0,0,0,0.7);
+      scrollbar-width: thin; scrollbar-color: rgba(150,170,255,0.3) transparent;
+    }
+    #chat-log .msg { margin-bottom: 3px; line-height: 1.35; }
+    #chat-log .pname { color: #ffd24a; font-weight: 700; }
+    #chat-log .clan-tag { color: #7be86a; font-weight: 600; }
+    #chat-log .sys { color: #9fb4e6; font-style: italic; }
+    #chat-input {
+      width: 100%; padding: 8px 12px; border-radius: 10px;
+      background: rgba(20,24,44,0.55); border: 1.5px solid rgba(120,150,255,0.25);
+      color: #fff; font-family: 'Rajdhani', sans-serif; backdrop-filter: blur(8px);
+      font-size: 13px; font-weight: 600; outline: none; transition: border-color 0.15s;
+    }
+    #chat-input:focus { border-color: rgba(120,150,255,0.6); }
+    #chat-input::placeholder { color: rgba(200,210,255,0.4); }
+
+    /* ── Action Bar (below the chat) ────────────────── */
+    #action-bar {
+      position: fixed; bottom: 16px; left: 16px; display: flex; gap: 8px;
+    }
+    .action-btn {
+      display: flex; flex-direction: column; align-items: center; gap: 2px;
+      padding: 8px 13px; border-radius: 14px; min-width: 60px;
+      background: rgba(20,24,44,0.72);
+      border: 1.5px solid rgba(120,150,255,0.28);
+      color: #dfe6ff; font-family: 'Rajdhani', sans-serif; font-size: 11px;
+      font-weight: 700; cursor: pointer; letter-spacing: 0.3px;
+      backdrop-filter: blur(10px); transition: all 0.14s;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.35);
+    }
+    .action-btn .ab-ico { font-size: 19px; line-height: 1; }
+    .action-btn small { font-size: 9px; color: #8e9bc8; font-weight: 700; }
+    .action-btn:hover {
+      border-color: #46e0ff; color: #fff; transform: translateY(-3px);
+      background: rgba(40,60,100,0.8);
+      box-shadow: 0 8px 22px rgba(0,0,0,0.45), 0 0 18px rgba(70,224,255,0.35);
+    }
+    .action-btn:active { transform: translateY(-1px); }
+
+    /* ── Notification ──────────────────────────── */
+    #notification {
+      position: fixed; top: 70px; left: 50%; transform: translateX(-50%);
+      background: rgba(20,24,44,0.85); border: 1.5px solid #46e0ff;
+      color: #eaf6ff; padding: 10px 26px; border-radius: 22px;
+      font-family: 'Rajdhani', sans-serif; font-size: 14px; font-weight: 700;
+      pointer-events: none; opacity: 0; transition: opacity 0.3s;
+      letter-spacing: 0.5px; white-space: nowrap; backdrop-filter: blur(10px);
+      box-shadow: 0 4px 20px rgba(0,0,0,0.5), 0 0 22px rgba(70,224,255,0.3);
+    }
+
+    /* ── Interact prompt ───────────────────────── */
+    #interact-prompt {
+      position: fixed; bottom: 210px; left: 50%; transform: translateX(-50%);
+      background: rgba(20,24,44,0.8); border: 1.5px solid rgba(120,150,255,0.5);
+      color: #eaf0ff; padding: 9px 20px; border-radius: 22px;
+      font-family: 'Rajdhani', sans-serif; font-size: 14px; font-weight: 600; letter-spacing: 0.3px;
+      pointer-events: none; display: none; backdrop-filter: blur(8px);
+      box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+    }
+
+    /* ── Clan Panel ────────────────────────────── */
+    #clan-panel {
+      position: fixed; top: 50%; left: 50%; transform: translate(-50%,-50%);
+      background: rgba(8,12,24,0.96); border: 1px solid rgba(200,160,60,0.5);
+      border-radius: 10px; padding: 24px; width: 340px;
+      display: none; z-index: 200;
+    }
+    #clan-panel h2 {
+      font-family: 'Cinzel', serif; font-size: 18px; color: #ffd700;
+      margin-bottom: 16px; letter-spacing: 1px;
+    }
+    #clan-panel .close-x {
+      float: right; cursor: pointer; color: #666; font-size: 18px; line-height: 1;
+    }
+    #clan-panel input {
+      width: 100%; padding: 8px 10px; margin-bottom: 8px;
+      background: rgba(255,255,255,0.05); border: 1px solid rgba(200,160,60,0.3);
+      border-radius: 4px; color: #f5e6c8;
+      font-family: 'Rajdhani', sans-serif; font-size: 13px; outline: none;
+    }
+
+    /* ── Landing / menu flow ───────────────────────── */
+    .screen {
+      position: fixed; inset: 0; z-index: 1000; display: none;
+      background-image: linear-gradient(rgba(6,12,20,0.35), rgba(6,12,20,0.5)), url('https://kvzwukjcvwcopmtqkiih.supabase.co/storage/v1/object/public/Cipher/hf_20260615_153817_68b6b221-8a81-4ffe-8918-2ee19ebbcda0%20(1).png');
+      background-color: #2a4a6a;           /* fallback */
+      background-size: cover; background-position: center;
+      flex-direction: column; align-items: center; justify-content: center;
+    }
+    .screen.active { display: flex; }
+
+    /* Top navigation bar */
+    #top-nav {
+      position: fixed; top: 0; left: 0; right: 0; height: 64px; z-index: 1001;
+      display: none; align-items: center; gap: 26px; padding: 0 26px;
+    }
+    #top-nav.active { display: flex; }
+    .nav-logo { font-family: 'Cinzel', serif; font-weight: 700; font-size: 22px; letter-spacing: 4px; color: #fff; text-shadow: 0 2px 6px rgba(0,0,0,0.6); }
+    .nav-beta { font-family: 'Rajdhani', sans-serif; font-size: 9px; font-weight: 700; letter-spacing: 1px; color: #1a1208; background: #e3b94a; padding: 2px 6px; border-radius: 5px; vertical-align: middle; margin-left: 6px; }
+    .nav-link { font-family: 'Rajdhani', sans-serif; font-weight: 600; font-size: 15px; color: #f3f5ef; text-decoration: none; text-shadow: 0 1px 4px rgba(0,0,0,0.6); opacity: 0.9; }
+    .nav-link:hover { opacity: 1; }
+    .nav-spacer { flex: 1; }
+    .nav-icon { width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; color: #fff; opacity: 0.85; text-decoration: none; font-size: 16px; }
+    .nav-icon:hover { opacity: 1; }
+    #connect-btn {
+      font-family: 'Rajdhani', sans-serif; font-weight: 700; font-size: 14px; color: #fff;
+      background: linear-gradient(135deg, #ff8a1e, #f06a10); border: none; border-radius: 8px;
+      padding: 9px 18px; cursor: pointer; box-shadow: 0 4px 14px rgba(240,110,16,0.4);
+      transition: transform 0.12s, box-shadow 0.12s;
+    }
+    #connect-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 18px rgba(240,110,16,0.55); }
+
+    /* Home screen centre block */
+    .home-title {
+      font-family: 'Cinzel', serif; font-weight: 700; font-size: 92px; letter-spacing: 10px;
+      color: #fff; text-shadow: 0 4px 18px rgba(0,0,0,0.7), 0 0 2px rgba(0,0,0,0.9); margin-bottom: 14px;
+    }
+    .home-tagline {
+      font-family: 'Rajdhani', sans-serif; font-weight: 600; font-size: 17px; color: #eef3e8;
+      text-align: center; max-width: 460px; line-height: 1.4; margin-bottom: 26px;
+      text-shadow: 0 2px 6px rgba(0,0,0,0.7);
+    }
+    .home-tagline b { color: #ffd24a; }
+    .btn-play {
+      font-family: 'Rajdhani', sans-serif; font-weight: 700; font-size: 22px; letter-spacing: 1px; color: #fff;
+      background: linear-gradient(135deg, #ff8a1e, #ef6a0e); border: none; border-radius: 12px;
+      padding: 14px 54px; cursor: pointer; box-shadow: 0 6px 20px rgba(240,110,16,0.45);
+      transition: transform 0.12s, box-shadow 0.12s; margin-bottom: 12px;
+    }
+    .btn-play:hover { transform: translateY(-2px); box-shadow: 0 9px 26px rgba(240,110,16,0.6); }
+    .btn-play:disabled { opacity: 0.7; cursor: default; transform: none; }
+    .btn-ghost {
+      font-family: 'Rajdhani', sans-serif; font-weight: 700; font-size: 15px; color: #2a3326;
+      background: rgba(255,255,255,0.92); border: none; border-radius: 9px;
+      padding: 9px 34px; cursor: pointer; transition: background 0.12s; margin-bottom: 22px;
+    }
+    .btn-ghost:hover { background: #fff; }
+
+    .home-stats { display: flex; gap: 12px; margin-bottom: 12px; }
+    .stat-pill {
+      font-family: 'Rajdhani', sans-serif; font-weight: 600; font-size: 13px; color: #eaf2e4;
+      background: rgba(20,28,18,0.6); border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 20px; padding: 6px 14px; backdrop-filter: blur(4px);
+      display: flex; align-items: center; gap: 7px;
+    }
+    .stat-dot { width: 8px; height: 8px; border-radius: 50%; background: #4ade6a; box-shadow: 0 0 6px #4ade6a; }
+    #ca-pill {
+      font-family: 'Rajdhani', sans-serif; font-size: 12px; color: #cfe0c6; cursor: pointer;
+      background: rgba(20,28,18,0.6); border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 20px; padding: 5px 14px; backdrop-filter: blur(4px);
+    }
+    #ca-pill:hover { color: #fff; }
+    #wallet-msg {
+      margin-top: 16px; font-family: 'Rajdhani', sans-serif; font-weight: 700; font-size: 15px;
+      min-height: 22px; padding: 0 16px; text-align: center;
+    }
+    #wallet-msg.err { color: #ff7a6e; text-shadow: 0 1px 4px #000; }
+    #wallet-msg.ok { color: #8fe06a; text-shadow: 0 1px 4px #000; }
+
+    /* Card used by username & server screens */
+    .menu-card {
+      background: rgba(14,20,14,0.82); backdrop-filter: blur(10px);
+      border: 1px solid rgba(255,255,255,0.14); border-radius: 18px;
+      padding: 34px 40px; width: 420px; max-width: 92vw; text-align: center;
+      box-shadow: 0 16px 50px rgba(0,0,0,0.55);
+    }
+    .menu-card h2 { font-family: 'Cinzel', serif; font-size: 26px; color: #ffd24a; letter-spacing: 2px; margin-bottom: 8px; }
+    .menu-card p { font-family: 'Rajdhani', sans-serif; font-size: 14px; color: #c7d3bf; margin-bottom: 20px; }
+    .menu-card .wallet-chip { font-family: 'Rajdhani', sans-serif; font-size: 12px; color: #8fe06a; margin-bottom: 18px; }
+    #username-input {
+      width: 100%; padding: 13px 16px; margin-bottom: 16px;
+      background: rgba(255,255,255,0.06); border: 1.5px solid rgba(255,210,74,0.4);
+      border-radius: 10px; color: #fff; font-family: 'Rajdhani', sans-serif;
+      font-size: 16px; font-weight: 600; text-align: center; letter-spacing: 1px; outline: none;
+    }
+    #username-input:focus { border-color: #ffd24a; }
+    .menu-card .btn-play { width: 100%; padding: 13px; font-size: 18px; margin-bottom: 0; }
+    .server-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 4px; }
+    .server-row {
+      display: flex; align-items: center; justify-content: space-between;
+      background: rgba(255,255,255,0.05); border: 1.5px solid rgba(255,255,255,0.12);
+      border-radius: 11px; padding: 13px 16px; cursor: pointer; transition: all 0.13s;
+      font-family: 'Rajdhani', sans-serif;
+    }
+    .server-row:hover { border-color: #ff8a1e; background: rgba(255,138,30,0.14); transform: translateX(2px); }
+    .server-row .sv-name { font-weight: 700; font-size: 16px; color: #fff; }
+    .server-row .sv-count { font-size: 13px; font-weight: 600; color: #9fe06a; display: flex; align-items: center; gap: 6px; }
+    .server-row .sv-bar { width: 70px; height: 6px; border-radius: 3px; background: rgba(255,255,255,0.15); overflow: hidden; }
+    .server-row .sv-bar > i { display: block; height: 100%; background: linear-gradient(90deg, #6ade5a, #f0b020); }
+
+    /* ── Task Panel ────────────────────────────── */
+    #task-panel {
+      position: fixed; top: 50%; left: 50%;
+      transform: translate(-50%, -50%) translateX(300px);
+      background: rgba(8,12,24,0.94); border: 1px solid rgba(200,160,60,0.55);
+      border-radius: 10px; width: 270px;
+      backdrop-filter: blur(10px); display: none; z-index: 150;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.7);
+    }
+    #task-panel-header {
+      padding: 14px 16px 11px;
+      border-bottom: 1px solid rgba(200,160,60,0.22);
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    #task-building-name {
+      font-family: 'Cinzel', serif; font-size: 14px;
+      color: #ffd700; letter-spacing: 1px; font-weight: 700;
+    }
+    #task-panel-close {
+      color: #555; cursor: pointer; font-size: 16px; line-height: 1;
+      transition: color 0.15s;
+    }
+    #task-panel-close:hover { color: #aaa; }
+    #task-list { padding: 10px 12px 12px; }
+    .task-item {
+      background: rgba(255,255,255,0.03); border: 1px solid rgba(200,160,60,0.22);
+      border-radius: 6px; padding: 10px 12px; margin-bottom: 8px;
+      cursor: pointer; transition: all 0.15s;
+    }
+    .task-item:last-child { margin-bottom: 0; }
+    .task-item:hover:not(.task-active):not(.task-done) {
+      border-color: rgba(200,160,60,0.65); background: rgba(200,160,60,0.08);
+    }
+    .task-item-title {
+      font-family: 'Cinzel', serif; font-size: 11px; color: #ffd700;
+      font-weight: 700; margin-bottom: 3px; letter-spacing: 0.5px;
+    }
+    .task-item-desc {
+      font-size: 12px; color: #7a6a52; margin-bottom: 5px;
+      font-family: 'Rajdhani', sans-serif;
+    }
+    .task-reward {
+      font-size: 12px; color: #6dbe6d;
+      font-family: 'Rajdhani', sans-serif; font-weight: 600;
+    }
+    .task-progress-bar {
+      width: 100%; height: 3px; background: rgba(200,160,60,0.18);
+      border-radius: 2px; margin-top: 8px; overflow: hidden; display: none;
+    }
+    .task-progress-fill {
+      height: 100%;
+      background: linear-gradient(to right, #7a5010, #ffd700);
+      border-radius: 2px; width: 0%;
+    }
+    .task-item.task-active .task-progress-bar { display: block; }
+    .task-item.task-done { opacity: 0.38; cursor: default; }
+
+    /* ── NPC Dialogue ──────────────────────────── */
+    #npc-dialogue {
+      position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%);
+      width: 460px; max-width: 90vw; display: none; z-index: 180;
+      background: linear-gradient(160deg, rgba(26,20,40,0.96), rgba(12,14,26,0.96));
+      border: 1px solid rgba(120,220,120,0.5); border-radius: 14px;
+      padding: 16px 18px; backdrop-filter: blur(10px);
+      box-shadow: 0 10px 40px rgba(0,0,0,0.7), 0 0 24px rgba(80,220,90,0.15);
+    }
+    #npc-d-header { display: flex; align-items: center; gap: 9px; margin-bottom: 10px; }
+    #npc-d-name {
+      font-family: 'Cinzel', serif; font-size: 16px; font-weight: 700; color: #d6ffce;
+      letter-spacing: 0.5px;
+    }
+    #npc-d-tag {
+      font-family: 'Rajdhani', sans-serif; font-size: 10px; font-weight: 700;
+      letter-spacing: 1px; color: #0a1f10;
+      background: linear-gradient(135deg, #7be86a, #46c24a);
+      padding: 2px 9px; border-radius: 8px;
+    }
+    #npc-d-text {
+      font-family: 'Rajdhani', sans-serif; font-size: 16px; font-weight: 500;
+      color: #e8e0cf; line-height: 1.4; margin-bottom: 14px; min-height: 22px;
+    }
+    #npc-d-actions { display: flex; flex-direction: column; gap: 7px; }
+    .npc-btn {
+      width: 100%; padding: 9px 12px; border-radius: 9px; cursor: pointer;
+      font-family: 'Cinzel', serif; font-size: 12px; font-weight: 600; text-align: left;
+      background: rgba(255,255,255,0.05); border: 1px solid rgba(200,160,60,0.3);
+      color: #d6c6a8; transition: all 0.13s;
+    }
+    .npc-btn:hover { border-color: #ffd86b; color: #ffe9a8; transform: translateX(2px); }
+    .npc-btn.buy {
+      background: rgba(70,180,80,0.14); border-color: rgba(110,220,120,0.5); color: #aef0a8;
+    }
+    .npc-btn.buy:hover { background: rgba(70,180,80,0.28); border-color: #7be86a; color: #d6ffce; }
+    .npc-btn.leave { color: #998; border-color: rgba(120,120,140,0.3); }
+
+    /* ── Full Map overlay ──────────────────────── */
+    #fullmap-overlay {
+      position: fixed; inset: 0; z-index: 300; display: none;
+      background: rgba(4,7,14,0.86); backdrop-filter: blur(4px);
+      align-items: center; justify-content: center;
+    }
+    #fullmap-frame {
+      background: linear-gradient(160deg, rgba(20,16,10,0.96), rgba(10,8,6,0.96));
+      border: 2px solid rgba(200,160,60,0.55); border-radius: 14px;
+      padding: 18px 18px 12px; box-shadow: 0 12px 48px rgba(0,0,0,0.7);
+      display: flex; flex-direction: column; align-items: center;
+    }
+    #fullmap-title {
+      font-family: 'Cinzel Decorative', serif; font-size: 22px; color: #e3b94a;
+      letter-spacing: 4px; margin-bottom: 12px;
+      text-shadow: 0 0 18px rgba(200,160,48,0.4), 0 2px 4px #000;
+    }
+    #fullmap-canvas {
+      border-radius: 8px; border: 1px solid rgba(200,160,60,0.35);
+      box-shadow: inset 0 0 40px rgba(0,0,0,0.6);
+      background: #0d130a;
+    }
+    #fullmap-hint {
+      margin-top: 10px; font-family: 'Rajdhani', sans-serif;
+      font-size: 12px; color: #7a6a4a; letter-spacing: 2px;
+    }
+
+    /* ── Interior overlay ──────────────────────── */
+    #interior-hud {
+      position: fixed; bottom: 160px; right: 16px;
+      background: rgba(8,12,24,0.85); border: 1px solid rgba(200,160,60,0.35);
+      border-radius: 8px; padding: 10px 16px;
+      font-family: 'Cinzel', serif; font-size: 12px; color: #c8b89a;
+      display: none; letter-spacing: 0.5px;
+    }
+    #interior-hud span { color: #ffd700; }
+  </style>
+</head>
+<body>
+
+<div id="renderer-mount"></div>
+<div id="label-layer"></div>
+
+<!-- HUD -->
+<div id="hud">
+  <div id="hud-name">Warrior</div>
+  <div class="stat-row"><span><span class="stat-icon">🪙</span>Gold</span><span class="stat-val" id="hud-gold">100</span></div>
+  <div class="stat-row"><span><span class="stat-icon">🌾</span>Rice</span><span class="stat-val" id="hud-rice">50</span></div>
+  <div class="stat-row"><span><span class="stat-icon">⚔️</span>Soldiers</span><span class="stat-val" id="hud-soldiers">10</span></div>
+  <div class="stat-row"><span><span class="stat-icon">🏯</span>Lands</span><span class="stat-val" id="hud-lands">0</span></div>
+  <div id="clan-badge" style="display:none"></div>
+</div>
+
+<!-- Minimap -->
+<div id="minimap-wrap">
+  <canvas id="minimap" width="190" height="190"></canvas>
+</div>
+
+<!-- Territory panel -->
+<div id="territory-panel">
+  <h3 id="tp-name">Territory</h3>
+  <div class="tp-row">Owner: <span id="tp-owner">None</span></div>
+  <div class="tp-row">Defense: <span id="tp-defense">0</span></div>
+  <button class="game-btn gold" id="tp-claim" onclick="claimSelected()">Claim (50 gold)</button>
+  <button class="game-btn danger" id="tp-attack" onclick="attackSelected()">Attack (15 soldiers)</button>
+  <button class="game-btn close-btn" onclick="closeTerrPanel()">Close</button>
+</div>
+
+<!-- Action bar -->
+<div id="action-bar">
+  <button class="action-btn" onclick="goHome()"><span class="ab-ico">🏯</span>Home</button>
+  <button class="action-btn" onclick="recruitSoldiers()"><span class="ab-ico">⚔️</span>Recruit<small>20g</small></button>
+  <button class="action-btn" onclick="openClanPanel()"><span class="ab-ico">🛡️</span>Clan</button>
+  <button class="action-btn" onclick="toggleFullmap()"><span class="ab-ico">🗺️</span>Map<small>M</small></button>
+  <button class="action-btn" id="music-btn" onclick="toggleMusic()"><span class="ab-ico">♪</span>Music</button>
+</div>
+
+<!-- Chat -->
+<div id="chat-box">
+  <div id="chat-log"></div>
+  <input id="chat-input" placeholder="Press Enter to chat…" maxlength="60" autocomplete="off">
+</div>
+
+<!-- Notification -->
+<div id="notification"></div>
+
+<!-- Interact prompt -->
+<div id="interact-prompt">Press E to enter</div>
+
+<!-- Interior HUD -->
+<div id="interior-hud">Inside: <span id="interior-name">Building</span> — Press E to exit</div>
+
+<!-- Task Panel -->
+<div id="task-panel">
+  <div id="task-panel-header">
+    <span id="task-building-name">Building</span>
+    <span id="task-panel-close" onclick="closeTaskPanel()">✕</span>
+  </div>
+  <div id="task-list"></div>
+</div>
+
+<!-- NPC Dialogue -->
+<div id="npc-dialogue">
+  <div id="npc-d-header">
+    <span id="npc-d-name">NPC</span>
+    <span id="npc-d-tag">Villager</span>
+  </div>
+  <div id="npc-d-text"></div>
+  <div id="npc-d-actions"></div>
+</div>
+
+<!-- Full Map overlay -->
+<div id="fullmap-overlay">
+  <div id="fullmap-frame">
+    <div id="fullmap-title">⛩ REALM OF DAIMYO ⛩</div>
+    <canvas id="fullmap-canvas"></canvas>
+    <div id="fullmap-hint">Press M or ESC to close</div>
+  </div>
+</div>
+
+<!-- Clan panel -->
+<div id="clan-panel">
+  <span class="close-x" onclick="closeClanPanel()">✕</span>
+  <h2>Clans</h2>
+  <div id="clan-content"></div>
+</div>
+
+<!-- ── Landing / menu flow ───────────────────────────────────────── -->
+<div id="top-nav">
+  <span class="nav-logo">DAIMYO<span class="nav-beta">BETA</span></span>
+  <a class="nav-link" href="how-to-play.html">How to Play</a>
+  <a class="nav-link" href="docs.html">Docs</a>
+  <span class="nav-spacer"></span>
+  <a class="nav-icon" href="https://x.com/playdaimyo" target="_blank" rel="noopener" title="Follow on X">
+    <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+  </a>
+  <button id="connect-btn" onclick="window.daimyoConnect()">Connect Wallet</button>
+</div>
+
+<!-- Home -->
+<div id="home-screen" class="screen active">
+  <div class="home-title">DAIMYO</div>
+  <div class="home-tagline">An isometric MMO where you play to earn, buy and sell for <b>$DYMO</b>, explore quests and adventure with friends.</div>
+  <button id="play-btn" class="btn-play" onclick="window.daimyoConnect()">Play Now</button>
+  <div class="home-stats">
+    <span class="stat-pill"><span class="stat-dot"></span><b id="stat-online">—</b>&nbsp;players online</span>
+    <span class="stat-pill"><span class="stat-dot"></span><b id="stat-monthly">—</b>&nbsp;players monthly</span>
+  </div>
+  <div id="ca-pill">CA:</div>
+  <div id="wallet-msg"></div>
+</div>
+
+<!-- Username -->
+<div id="username-screen" class="screen">
+  <div class="menu-card">
+    <h2>CHOOSE YOUR NAME</h2>
+    <p>This name will be linked to your wallet for next time.</p>
+    <div class="wallet-chip" id="username-wallet"></div>
+    <input id="username-input" placeholder="Enter a username" maxlength="20" autocomplete="off">
+    <button class="btn-play" onclick="window.daimyoSaveUsername()">CONTINUE</button>
+  </div>
+</div>
+
+<!-- Server select -->
+<div id="server-screen" class="screen">
+  <div class="menu-card">
+    <h2>SELECT A SERVER</h2>
+    <p>All servers share the same world — pick one by how busy it is.</p>
+    <div class="server-list" id="server-list"></div>
+  </div>
+</div>
+
+<!-- Game loading screen -->
+<div id="game-loading">
+  <div class="gl-logo">DAIMYO</div>
+  <div class="gl-bar"><i id="gl-fill"></i></div>
+  <div id="load-pct">Loading 0%</div>
+</div>
+<style>
+  #game-loading { position: fixed; inset: 0; z-index: 1000; display: none;
+    flex-direction: column; align-items: center; justify-content: center; gap: 18px;
+    background: radial-gradient(ellipse at center, #14241a 0%, #060a08 100%); }
+  .gl-logo { font-family: 'Cinzel', serif; font-size: 66px; letter-spacing: 10px; color: #ffd24a;
+    text-shadow: 0 0 34px rgba(255,210,74,0.4); }
+  .gl-bar { width: 300px; height: 8px; background: rgba(255,255,255,0.1); border-radius: 5px; overflow: hidden; }
+  .gl-bar > i { display: block; height: 100%; width: 0%; background: linear-gradient(90deg,#ff8a1e,#ffd24a); transition: width 0.2s; }
+  #load-pct { font-family: 'Rajdhani', sans-serif; color: #9fb89a; font-weight: 600; letter-spacing: 1px; }
+</style>
+
+<script>
+/* ── Landing / wallet-gate / username / server flow ─────────────────────────── */
+(function () {
+  const TOKEN = '0xad7d9796c62f2200b5885838a8165620b6bacba3';
+  const BASE_RPC = 'https://mainnet.base.org';
+  const REQUIRED = 1000n;
+  let wallet = null;
+  const $ = id => document.getElementById(id);
+
+  function showScreen(id) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    if (id) $(id).classList.add('active');
+    $('top-nav').classList.toggle('active', !!id);
+  }
+  function msg(text, cls) { const m = $('wallet-msg'); m.textContent = text || ''; m.className = cls || ''; }
+
+  async function rpc(method, params) {
+    const r = await fetch(BASE_RPC, { method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ jsonrpc: '2.0', id: 1, method, params }) });
+    const j = await r.json();
+    if (j.error) throw new Error(j.error.message || 'rpc');
+    return j.result;
+  }
+  const pad = a => a.toLowerCase().replace('0x', '').padStart(64, '0');
+  const ethCall = data => rpc('eth_call', [{ to: TOKEN, data }, 'latest']);
+
+  async function ownsTokens(addr) {
+    const balHex = await ethCall('0x70a08231' + pad(addr));            // balanceOf(addr)
+    let decimals = 18n;
+    try { const d = await ethCall('0x313ce567'); if (d && d !== '0x') decimals = BigInt(parseInt(d, 16)); } catch {}
+    const bal = BigInt(balHex || '0x0');
+    return bal >= REQUIRED * (10n ** decimals);
+  }
+
+  async function getUsername(addr) {
+    try { const r = await fetch('/api/user?wallet=' + addr); return (await r.json()).username || null; }
+    catch { return localStorage.getItem('daimyo_user_' + addr.toLowerCase()); }
+  }
+  async function saveUsernameApi(addr, name) {
+    localStorage.setItem('daimyo_user_' + addr.toLowerCase(), name);
+    try { await fetch('/api/user', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ wallet: addr, username: name }) }); } catch {}
+  }
+
+  window.daimyoConnect = async function () {
+    msg('');
+    if (!window.ethereum) { msg('MetaMask not found — please install MetaMask to play.', 'err'); return; }
+    const btn = $('play-btn'), cbtn = $('connect-btn'), old = btn.textContent;
+    btn.disabled = true; btn.textContent = 'Connecting…'; cbtn.textContent = 'Connecting…';
+    try {
+      const accts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+      wallet = accts[0];
+      cbtn.textContent = wallet.slice(0, 6) + '…' + wallet.slice(-4);
+      btn.textContent = 'Checking $DYMO…';
+      if (!(await ownsTokens(wallet))) { msg('You must own 1,000 $DYMO to play.', 'err'); btn.disabled = false; btn.textContent = old; return; }
+      msg('Wallet verified ✓', 'ok');
+      const uname = await getUsername(wallet);
+      btn.disabled = false; btn.textContent = old;
+      if (uname) { window.daimyoUsername = uname; goServers(); }
+      else { $('username-wallet').textContent = '🔗 ' + wallet.slice(0, 6) + '…' + wallet.slice(-4); showScreen('username-screen'); setTimeout(() => $('username-input').focus(), 80); }
+    } catch (e) {
+      msg(e && e.code === 4001 ? 'Connection rejected.' : 'Could not verify wallet — try again.', 'err');
+      btn.disabled = false; btn.textContent = old; cbtn.textContent = 'Connect Wallet';
+    }
+  };
+
+  window.daimyoSaveUsername = async function () {
+    const name = ($('username-input').value || '').trim();
+    if (!name) { $('username-input').focus(); return; }
+    window.daimyoUsername = name;
+    await saveUsernameApi(wallet, name);
+    goServers();
+  };
+
+  function goServers() {
+    const servers = [{ name: 'Edo', load: 0.92 }, { name: 'Kyoto', load: 0.6 }, { name: 'Osaka', load: 0.35 }, { name: 'Sapporo', load: 0.15 }];
+    const base = window.__online || 200;
+    const list = $('server-list'); list.innerHTML = '';
+    servers.forEach(s => {
+      const count = Math.max(1, Math.round(base * s.load));
+      const row = document.createElement('div'); row.className = 'server-row';
+      row.innerHTML = `<span class="sv-name">⛩ ${s.name}</span><span class="sv-count"><span class="sv-bar"><i style="width:${Math.round(s.load * 100)}%"></i></span>${count} online</span>`;
+      row.onclick = startGame;
+      list.appendChild(row);
+    });
+    showScreen('server-screen');
+  }
+
+  function startGame() {
+    showScreen(null);
+    // Record this wallet as an active player (drives the real monthly count).
+    if (wallet) { try { fetch('/api/seen', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ wallet }) }); } catch {} }
+    if (window.enterGame) window.enterGame(window.daimyoUsername || 'Warrior');
+  }
+
+  window.daimyoCopyCA = function () {
+    try { navigator.clipboard.writeText(TOKEN); } catch {}
+    const p = $('ca-pill'), t = p.textContent; p.textContent = 'Copied!'; setTimeout(() => p.textContent = t, 1200);
+  };
+
+  async function loadStats() {
+    try { const j = await (await fetch('/api/stats')).json();
+      window.__online = j.online;
+      $('stat-online').textContent = j.online.toLocaleString();
+      $('stat-monthly').textContent = j.monthly.toLocaleString();
+    } catch { /* keep last real value — never show fake numbers */ }
+  }
+  showScreen('home-screen');        // make the top nav visible on the landing page
+  loadStats(); setInterval(loadStats, 8000);
+  $('username-input').addEventListener('keydown', e => { if (e.key === 'Enter') window.daimyoSaveUsername(); });
+})();
+</script>
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.min.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+  }
+}
+</script>
+<script src="/socket.io/socket.io.js"></script>
+<script type="module" src="game.js"></script>
+</body>
+</html>

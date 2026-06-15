@@ -1,0 +1,10 @@
+node_modules/
+npm-debug.log*
+.DS_Store
+.env
+# runtime data (regenerated at runtime; keep off git so deploys don't overwrite)
+server/users.json
+server/seen.json
+# Unity source project (2.3GB, NOT needed to run the game — assets already live in
+# client/assets/). Keep your local copy; it stays off GitHub.
+My project/

@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Game Guide — Daimyo Docs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="guide.css">
+</head>
+<body>
+
+<nav class="gnav">
+  <a class="logo" href="index.html">DAIMYO<span class="beta">BETA</span></a>
+  <a class="link" href="how-to-play.html">How to Play</a>
+  <a class="link active" href="docs.html">Docs</a>
+  <span class="spacer"></span>
+  <a class="x" href="https://x.com/playdaimyo" target="_blank" rel="noopener" title="Follow on X">
+    <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+  </a>
+  <a class="cta" href="index.html">Play Now</a>
+</nav>
+
+<div class="wrap">
+  <aside class="sidebar">
+    <div class="side-title">GAME GUIDE</div>
+    <a href="#intro" class="active">Introduction</a>
+    <a href="#account">Account &amp; $DYMO</a>
+    <a href="#first">Your First Session</a>
+    <a href="#world">World &amp; Map</a>
+    <a href="#capital">The Capital</a>
+    <a href="#outer">Villages, Farm &amp; Wilds</a>
+    <a href="#rivers">Rivers &amp; Bridges</a>
+    <a href="#npcs">NPCs</a>
+    <a href="#territory">Territory &amp; War</a>
+    <a href="#soldiers">Soldiers &amp; Combat</a>
+    <a href="#clans">Clans</a>
+    <a href="#tasks">Tasks &amp; Buildings</a>
+    <a href="#economy">Economy &amp; Resources</a>
+    <a href="#movement">Movement &amp; Camera</a>
+    <a href="#chat">Chat &amp; Emotes</a>
+    <a href="#keys">Keybindings</a>
+    <a href="#wallet">Wallet &amp; Base</a>
+    <a href="#trouble">Troubleshooting</a>
+  </aside>
+
+  <main class="content">
+    <div class="page-head">
+      <div class="kicker">DOCUMENTATION</div>
+      <h1>Game Guide</h1>
+      <p>The complete reference for Daimyo — an isometric feudal-Japan MMO on <b>Base</b>, where you claim land, command soldiers, trade with NPCs, and rule with your clan.</p>
+      <div class="shot"><img src="assets/guide/hero.jpg" onerror="this.remove()"><span class="ph">📷 The realm of Daimyo</span></div>
+    </div>
+
+    <section class="card" id="intro">
+      <h2>Introduction</h2>
+      <p>Daimyo is a browser-based, real-time multiplayer world rendered in 3D. You play a warrior building influence across a feudal-Japan realm: gather resources from tasks, claim and conquer territory, grow an army, found a clan, and trade with townsfolk. The project token, <b>$DYMO</b>, lives on the <b>Base</b> network and gates entry to the game.</p>
+      <p class="lead">This guide documents systems that are live today. Beta is evolving quickly — features marked <b>(planned)</b> are not in the build yet.</p>
+    </section>
+
+    <section class="card" id="account">
+      <h2>Account &amp; $DYMO</h2>
+      <p>There is no email/password sign-up. Your identity is your <b>wallet</b>:</p>
+      <ul>
+        <li>Connect <b>MetaMask</b> from the landing page.</li>
+        <li>The game reads your <b>$DYMO</b> balance on Base. You must hold <b>≥ 1,000 $DYMO</b> to enter.</li>
+        <li>The first time a wallet connects you choose a <b>username</b>; it is saved to that wallet, so you skip straight to server select next time.</li>
+      </ul>
+      <p>Token contract (Base): <code>0xad7d9796c62f2200b5885838a8165620b6bacba3</code></p>
+      <div class="tip note"><b>Privacy:</b> Connecting only proves you hold the token and links your chosen name. Daimyo never moves funds and never asks for a seed phrase.</div>
+    </section>
+
+    <section class="card" id="first">
+      <h2>Your First Session</h2>
+      <ol>
+        <li>Open the site and click <b>Play Now</b> (or <b>Connect Wallet</b>).</li>
+        <li>Approve the connection in MetaMask. If you hold 1,000+ $DYMO you pass the gate.</li>
+        <li>Enter a username (first time only), then pick a <b>server</b>.</li>
+        <li>You spawn at the <b>Imperial Capital</b>. Move with WASD, talk to NPCs with F, and enter buildings with E to do tasks for starting Gold.</li>
+        <li>Recruit a few soldiers, then click nearby land to claim your first territory.</li>
+      </ol>
+    </section>
+
+    <section class="card" id="world">
+      <h2>World &amp; Map</h2>
+      <p>The realm is a single circular island bordered by ocean. Elevation rolls gently; the spawn plaza is flat. Press <b>M</b> (or the Map button) for the full world map, which shows the road network, rivers, your position, and five named landmarks: the <b>Imperial Capital</b>, the <b>Rice Farm</b>, and three outlying villages.</p>
+      <p>The mini-map (top-right) tracks you, other players, owned territory tints, and major landmarks in real time.</p>
+      <div class="shot"><img src="assets/guide/map.jpg" onerror="this.remove()"><span class="ph">📷 The world map (press M)</span></div>
+    </section>
+
+    <section class="card" id="capital">
+      <h2>The Capital</h2>
+      <p>The center of the realm. Key features:</p>
+      <ul>
+        <li><b>Fountain plaza</b> — grassy spawn ringed by a stone path, lampposts and braziers.</li>
+        <li><b>Town Hall, Tavern, Blacksmith, Church, School, Seed Store</b> — enterable buildings with tasks.</li>
+        <li><b>Torii gate</b> and guardian statues as landmarks.</li>
+        <li>A ring of <b>houses</b> and several friendly NPCs.</li>
+      </ul>
+    </section>
+
+    <section class="card" id="outer">
+      <h2>Villages, Farm &amp; Wilds</h2>
+      <p>Narrow paths lead out from the capital. Scattered <b>villages</b> each have a store and a cluster of houses. The <b>Rice Farm</b> sits to the southwest with tilled fields, a barn, hay bales and a scarecrow. Beyond the roads the land grows wooded with dense trees and rocks — room to expand your territory.</p>
+      <div class="shot"><img src="assets/guide/farm.jpg" onerror="this.remove()"><span class="ph">📷 The Rice Farm</span></div>
+    </section>
+
+    <section class="card" id="rivers">
+      <h2>Rivers &amp; Bridges</h2>
+      <p>Two rivers cross the realm. Water is impassable. The main roads cross each river on a <b>wooden bridge</b> with railings and support pillars; the decks line up with the paths so movement is seamless. Plan routes through bridges when expanding.</p>
+    </section>
+
+    <section class="card" id="npcs">
+      <h2>NPCs</h2>
+      <p>NPCs wear a green <b>NPC</b> nametag and a floating marker. Stand near one and press <b>F</b> to open a dialogue. Continue through their lines, trade, or leave.</p>
+      <ul>
+        <li><b>Old Hiro</b> — elder; realm lore.</li>
+        <li><b>Samurai Yuki</b> — combat advice.</li>
+        <li><b>Merchant Aiko</b> — apple for 3 gold (+5 rice).</li>
+        <li><b>Farmer Mei</b> — apple basket for 5 gold (+10 rice).</li>
+        <li><b>Coin Trader Goro</b> — 8 rice for 12 gold.</li>
+      </ul>
+    </section>
+
+    <section class="card" id="territory">
+      <h2>Territory &amp; War</h2>
+      <p>The map is split into 8×8-tile territories, each with a Japanese name. Click land to select a territory; a glowing square highlights it and the territory panel opens.</p>
+      <ul>
+        <li><b>Claim</b> (unowned): costs <b>50 gold</b>. You become owner; defense is set to your current soldiers.</li>
+        <li><b>Attack</b> (owned by another): costs <b>15 soldiers</b>. Outcome compares your soldiers (×random) to the territory's defense. Win → you take it, defender loses soldiers, you gain a 30-gold bounty. Lose → the defense drops by 5.</li>
+        <li>Owned territory tints with your color (or clan color) on the map and slowly generates passive Gold and Rice.</li>
+      </ul>
+      <div class="tip"><b>Strategy:</b> Bank soldiers before attacking, and re-fortify by recruiting after you take new land — defense is just the soldiers you leave behind.</div>
+    </section>
+
+    <section class="card" id="soldiers">
+      <h2>Soldiers &amp; Combat</h2>
+      <p>Combat in Daimyo is <b>territory-based</b>, not twitch melee. Your <b>Soldiers</b> stat is your army.</p>
+      <ul>
+        <li><b>Recruit</b>: 20 gold → +5 soldiers (Recruit button).</li>
+        <li>Attacks spend 15 soldiers and resolve instantly against territory defense.</li>
+        <li>Your <b>Level</b> rises with soldiers, owned land, and gold.</li>
+      </ul>
+    </section>
+
+    <section class="card" id="clans">
+      <h2>Clans</h2>
+      <p>Open the <b>Clan</b> panel to found or join a clan.</p>
+      <ul>
+        <li><b>Found a clan</b>: 200 gold. You pick the name; you get a clan color.</li>
+        <li><b>Join</b>: pick any existing clan from the list.</li>
+        <li>Clan members' names carry a clan tag in chat, and clan-held territory shares a color on the map.</li>
+      </ul>
+    </section>
+
+    <section class="card" id="tasks">
+      <h2>Tasks &amp; Buildings</h2>
+      <p>Approach an enterable building (a prompt appears) and press <b>E</b> to go inside. The interior shows a task panel — start a task, wait for the timer, and collect the reward (Gold, Rice, or Soldiers). Press <b>E</b> near the door to leave. Tasks are the steady, risk-free income source.</p>
+    </section>
+
+    <section class="card" id="economy">
+      <h2>Economy &amp; Resources</h2>
+      <p>Four resources drive play, shown top-left:</p>
+      <ul>
+        <li><b>🪙 Gold</b> — claim land, recruit, found clans, buy from NPCs.</li>
+        <li><b>🌾 Rice</b> — food/economy; trade with Coin Trader Goro for gold.</li>
+        <li><b>⚔️ Soldiers</b> — your army for attack and defense.</li>
+        <li><b>🏯 Lands</b> — territories you own (passive income).</li>
+      </ul>
+      <p><b>$DYMO</b> is the on-chain token (Base) used to gate access; in-game balances above are off-chain and server-tracked. On-chain marketplace trading of items for $DYMO is <b>(planned)</b>.</p>
+    </section>
+
+    <section class="card" id="movement">
+      <h2>Movement &amp; Camera</h2>
+      <ul>
+        <li>WASD / arrows to move; the character animates a walk cycle.</li>
+        <li>Right-drag the mouse (or Q / Z) to rotate the camera; scroll wheel to zoom.</li>
+        <li>Buildings, trees, rocks, props, water and the world border are solid — you can't walk through them.</li>
+        <li>The <b>Home</b> button returns you to the capital instantly.</li>
+      </ul>
+    </section>
+
+    <section class="card" id="chat">
+      <h2>Chat &amp; Emotes</h2>
+      <p>Press <b>Enter</b> to focus chat, type, and Enter again to send. Messages appear in the log (bottom-left) and as a bubble above your character for everyone on the server. Press <b>E</b> in the open (not next to a building) to cycle <b>emotes</b>: wave, cheer, jump.</p>
+    </section>
+
+    <section class="card" id="keys">
+      <h2>Keybindings</h2>
+      <ul>
+        <li><b>W A S D / Arrows</b> — move</li>
+        <li><b>E</b> — emote, or enter/exit a building</li>
+        <li><b>F</b> — talk to nearby NPC</li>
+        <li><b>M</b> — world map</li>
+        <li><b>Enter</b> — chat</li>
+        <li><b>Esc</b> — close panels / map / dialogue</li>
+        <li><b>Q / Z</b> — rotate camera · <b>Right-drag</b> — rotate · <b>Scroll</b> — zoom</li>
+        <li><b>Left-click land</b> — select territory</li>
+      </ul>
+    </section>
+
+    <section class="card" id="wallet">
+      <h2>Wallet &amp; Base</h2>
+      <p>Daimyo uses <b>MetaMask</b> and the <b>Base</b> network. On connect, the game queries your balance of the $DYMO contract via a Base RPC. You do <b>not</b> need to switch networks just to log in — the balance check reads Base directly. Holding fewer than 1,000 $DYMO shows: <i>"You must own 1,000 $DYMO to play."</i></p>
+      <div class="tip warn"><b>Security:</b> Never share a seed phrase. Logging in requires only a read-only connection — no transaction or token approval.</div>
+    </section>
+
+    <section class="card" id="trouble">
+      <h2>Troubleshooting</h2>
+      <ul>
+        <li><b>"MetaMask not found"</b> — install the MetaMask extension and refresh.</li>
+        <li><b>Gate says you don't own $DYMO</b> — confirm the tokens are on <b>Base</b> in the connected address.</li>
+        <li><b>Stuck on loading</b> — the 3D assets are downloading; give it a moment, then refresh if needed.</li>
+        <li><b>Wrong username remembered</b> — it's tied to your wallet; reconnect with the right wallet.</li>
+        <li><b>Performance</b> — close other heavy tabs; the world streams a lot of geometry.</li>
+      </ul>
+    </section>
+  </main>
+</div>
+
+<div class="footer">Daimyo — built by adventurers, for adventurers. Follow us on <a href="https://x.com/playdaimyo" target="_blank" rel="noopener">X</a>.</div>
+
+<script>
+const links = [...document.querySelectorAll('.sidebar a')];
+const map = new Map(links.map(a => [a.getAttribute('href').slice(1), a]));
+const obs = new IntersectionObserver(es => {
+  es.forEach(e => { if (e.isIntersecting) { links.forEach(l => l.classList.remove('active')); map.get(e.target.id)?.classList.add('active'); } });
+}, { rootMargin: '-25% 0px -65% 0px' });
+document.querySelectorAll('section.card[id]').forEach(s => obs.observe(s));
+</script>
+</body>
+</html>

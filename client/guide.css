@@ -1,0 +1,104 @@
+/* Shared styles for the How to Play & Docs (Game Guide) pages */
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+:root {
+  --panel: rgba(14, 26, 40, 0.66);
+  --panel-2: rgba(10, 20, 32, 0.72);
+  --line: rgba(150, 190, 240, 0.16);
+  --gold: #ffd24a;
+  --orange: #ff8a1e;
+  --txt: #dbe6f2;
+  --muted: #9fb2c9;
+}
+html { scroll-behavior: smooth; scroll-padding-top: 84px; }
+body {
+  font-family: 'Rajdhani', sans-serif; color: var(--txt); min-height: 100vh;
+  background:
+    linear-gradient(rgba(8,16,28,0.55), rgba(8,16,28,0.78)),
+    url('https://kvzwukjcvwcopmtqkiih.supabase.co/storage/v1/object/public/Cipher/hf_20260615_153817_68b6b221-8a81-4ffe-8918-2ee19ebbcda0%20(1).png');
+  background-color: #1c3450; background-size: cover; background-position: center;
+  background-attachment: fixed;
+}
+
+/* Top nav */
+.gnav {
+  position: fixed; top: 0; left: 0; right: 0; height: 64px; z-index: 50;
+  display: flex; align-items: center; gap: 24px; padding: 0 26px;
+  background: rgba(8,16,28,0.55); backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--line);
+}
+.gnav .logo { font-family: 'Cinzel', serif; font-weight: 700; font-size: 21px; letter-spacing: 4px; color: #fff; text-decoration: none; }
+.gnav .beta { font-family: 'Rajdhani'; font-size: 9px; font-weight: 700; letter-spacing: 1px; color: #1a1208; background: var(--gold); padding: 2px 6px; border-radius: 5px; margin-left: 6px; }
+.gnav a.link { color: #e6eefa; text-decoration: none; font-weight: 600; font-size: 15px; opacity: 0.9; }
+.gnav a.link:hover, .gnav a.link.active { opacity: 1; color: var(--gold); }
+.gnav .spacer { flex: 1; }
+.gnav .x { color: #fff; opacity: 0.85; display: flex; }
+.gnav .x:hover { opacity: 1; }
+.gnav .cta {
+  font-weight: 700; font-size: 14px; color: #fff; text-decoration: none;
+  background: linear-gradient(135deg, var(--orange), #ef6a0e); border-radius: 8px;
+  padding: 9px 18px; box-shadow: 0 4px 14px rgba(240,110,16,0.4);
+}
+.gnav .cta:hover { transform: translateY(-1px); }
+
+/* Layout */
+.wrap { max-width: 1180px; margin: 0 auto; padding: 92px 24px 80px; display: grid; grid-template-columns: 220px 1fr; gap: 28px; }
+.sidebar { position: sticky; top: 92px; align-self: start; max-height: calc(100vh - 110px); overflow: auto; }
+.sidebar .side-title { font-size: 11px; letter-spacing: 2px; color: var(--muted); font-weight: 700; margin: 4px 0 10px 14px; }
+.sidebar a {
+  display: block; color: var(--txt); text-decoration: none; font-weight: 600; font-size: 14px;
+  padding: 8px 14px; border-radius: 8px; opacity: 0.85; border-left: 2px solid transparent;
+}
+.sidebar a:hover { background: rgba(255,255,255,0.05); opacity: 1; }
+.sidebar a.active { color: var(--gold); border-left-color: var(--gold); background: rgba(255,210,74,0.08); }
+
+.content { display: flex; flex-direction: column; gap: 18px; min-width: 0; }
+
+/* Header panel */
+.page-head { background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 26px 30px; backdrop-filter: blur(8px); }
+.page-head .kicker { font-size: 11px; letter-spacing: 3px; color: var(--orange); font-weight: 700; }
+.page-head h1 { font-family: 'Cinzel', serif; font-size: 34px; color: #fff; letter-spacing: 1px; margin: 6px 0 8px; }
+.page-head p { color: var(--muted); font-size: 16px; max-width: 640px; line-height: 1.45; }
+
+/* Icon strip */
+.icon-strip { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 18px; }
+.icon-strip .it { display: flex; flex-direction: column; align-items: center; gap: 4px; width: 76px; padding: 10px 6px; background: rgba(255,255,255,0.04); border: 1px solid var(--line); border-radius: 10px; }
+.icon-strip .it .em { font-size: 22px; }
+.icon-strip .it .nm { font-size: 9px; letter-spacing: 1px; color: var(--muted); font-weight: 700; }
+
+/* Section panel */
+section.card { background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 24px 30px; backdrop-filter: blur(8px); scroll-margin-top: 84px; }
+section.card h2 { font-family: 'Cinzel', serif; font-size: 21px; color: var(--gold); letter-spacing: 1px; margin-bottom: 12px; }
+section.card h3 { font-size: 16px; color: #fff; font-weight: 700; margin: 16px 0 6px; }
+section.card p { font-size: 15.5px; line-height: 1.5; color: var(--txt); margin-bottom: 10px; }
+section.card ul, section.card ol { margin: 0 0 10px 20px; }
+section.card li { font-size: 15px; line-height: 1.5; margin-bottom: 5px; }
+section.card b { color: #fff; }
+section.card code { background: rgba(0,0,0,0.35); border: 1px solid var(--line); border-radius: 5px; padding: 1px 6px; font-family: monospace; font-size: 13px; color: #ffe08a; }
+.lead { color: var(--muted); }
+
+/* Screenshot frame (drop real images into client/assets/guide/) */
+.shot { position: relative; width: 100%; aspect-ratio: 16 / 7; border-radius: 12px; overflow: hidden;
+  border: 1px solid var(--line); margin: 12px 0;
+  background: linear-gradient(135deg, #2f5e34, #244a63);
+  display: flex; align-items: center; justify-content: center; }
+.shot img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.shot .ph { color: rgba(255,255,255,0.7); font-size: 13px; font-weight: 600; letter-spacing: 0.5px; z-index: 1; text-align: center; padding: 0 12px; }
+
+/* Caption row under a shot */
+.cap-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: -4px; margin-bottom: 8px; }
+.cap-row .cap { flex: 1; min-width: 120px; text-align: center; font-size: 12px; color: var(--muted); }
+
+/* Tip / note boxes */
+.tip { border-left: 3px solid var(--gold); background: rgba(255,210,74,0.08); border-radius: 0 8px 8px 0; padding: 10px 14px; font-size: 14px; color: #f0e6c8; margin: 10px 0; }
+.tip.warn { border-left-color: #ff6b6b; background: rgba(255,107,107,0.10); color: #ffd8d8; }
+.tip.note { border-left-color: #6aa0ff; background: rgba(106,160,255,0.10); color: #d6e4ff; }
+.tip b { color: #fff; }
+
+.footer { text-align: center; color: var(--muted); font-size: 13px; padding: 26px; }
+.footer a { color: var(--gold); text-decoration: none; }
+
+@media (max-width: 820px) {
+  .wrap { grid-template-columns: 1fr; }
+  .sidebar { position: static; max-height: none; display: flex; flex-wrap: wrap; gap: 6px; }
+  .sidebar .side-title { width: 100%; }
+}
