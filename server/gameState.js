@@ -79,7 +79,7 @@ class GameState {
 
     // ── A couple of narrow paths branch out from the ring across the map ──
     if (dist > 5.0 && dist < R - 5) {
-      if (Math.abs(cx) < 0.85 || Math.abs(cy) < 0.85) return TILE.ROAD;        // narrow N-S & E-W paths
+      if (Math.abs(cx) < 0.55 || Math.abs(cy) < 0.55) return TILE.ROAD;        // narrow N-S & E-W paths
     }
 
     // Rivers — two meandering water channels. Roads above already returned ROAD,
@@ -95,9 +95,11 @@ class GameState {
     if (h > 0.58) return TILE.MOUNTAIN;
     if (h > 0.34 && dist > 12) return TILE.FOREST;   // denser forests fill the map
 
-    if (dist > 8 && dist < 30) {
+    // Keep the area right around the capital green & buildable — push the dirt
+    // patches further out and thin them so the spawn surroundings aren't bare.
+    if (dist > 34 && dist < 64) {
       const dNoise = noise(x * 0.3 + 5, y * 0.3 + 5);
-      if (dNoise > 0.56) return TILE.DIRT;
+      if (dNoise > 0.66) return TILE.DIRT;
     }
 
     return TILE.GRASS;
@@ -138,8 +140,11 @@ class GameState {
       return true;
     };
     const tooClose = (x, z, min) => list.some(b => Math.hypot(b.x - x, b.z - z) < min);
+    // Keep buildings out of the farm plot (placed client-side at this same spot).
+    const FARM = { x: cx + 118, z: cz + 96, r: 46 };
     const add = (model, x, z, rot, label, type) => {
       if (!buildable(x, z) || tooClose(x, z, 16)) return false;
+      if (Math.hypot(FARM.x - x, FARM.z - z) < FARM.r) return false;
       list.push({ id: 'b' + (idc++), model, x, z, rot, label, type, enterable: true });
       return true;
     };
@@ -165,7 +170,7 @@ class GameState {
     const ringLabels = ['Cottage', 'Cabin', 'House', 'Farmstead', 'Hut'];
     // Rings reach from right beside the plaza all the way out to the village band,
     // so there is no empty "donut" of grass around the capital.
-    for (const r of [88, 104, 120, 137, 155, 174, 194, 215, 238, 262, 288, 315, 344]) {
+    for (const r of [58, 72, 88, 104, 120, 137, 155, 174, 194, 215, 238, 262, 288, 315, 344]) {
       const slots = Math.max(12, Math.round(r / 7));     // more slots as the ring grows
       for (let i = 0; i < slots; i++) {
         const a = (i / slots) * Math.PI * 2 + r * 0.017; // stagger each ring so they interleave

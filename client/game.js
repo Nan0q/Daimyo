@@ -2007,7 +2007,7 @@ function buildWorld(data) {
     buildTerrain(mapData);
     placeBuildings(serverBuildings);
     buildSpawnArea(mapData.width / 2 * TILE_W, mapData.height / 2 * TILE_W);
-    buildFarm(mapData.width / 2 * TILE_W - 160, mapData.height / 2 * TILE_W + 120);
+    buildFarm(mapData.width / 2 * TILE_W + 118, mapData.height / 2 * TILE_W + 96);
     buildNPCs(mapData.width / 2 * TILE_W, mapData.height / 2 * TILE_W);
     placeBridges(serverBridges);
     // Vegetation last — skips anything overlapping a structure or other prop.
