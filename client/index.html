@@ -245,12 +245,20 @@
     /* ── Landing / menu flow ───────────────────────── */
     .screen {
       position: fixed; inset: 0; z-index: 1000; display: none;
-      background-image: url('https://kvzwukjcvwcopmtqkiih.supabase.co/storage/v1/object/public/Cipher/hf_20260615_153817_68b6b221-8a81-4ffe-8918-2ee19ebbcda0%20(1).png');
-      background-color: #2a4a6a;           /* fallback */
+      background-color: #2a4a6a;           /* fallback while the video loads */
       background-size: cover; background-position: center;
       flex-direction: column; align-items: center; justify-content: center;
     }
     .screen.active { display: flex; }
+
+    /* Fullscreen looping background video (muted, slowed, autoplay) */
+    #bg-video {
+      position: fixed; inset: 0; width: 100%; height: 100%;
+      object-fit: cover; z-index: 999; pointer-events: none;
+      background: #2a4a6a;
+    }
+    /* Only show the video behind the landing screens, not in-game */
+    body.in-game #bg-video { display: none; }
 
     /* Top navigation bar */
     #top-nav {
@@ -489,6 +497,10 @@
 </head>
 <body>
 
+<video id="bg-video" autoplay muted loop playsinline preload="auto"
+       poster="https://kvzwukjcvwcopmtqkiih.supabase.co/storage/v1/object/public/Cipher/hf_20260615_153817_68b6b221-8a81-4ffe-8918-2ee19ebbcda0%20(1).png">
+  <source src="https://kvzwukjcvwcopmtqkiih.supabase.co/storage/v1/object/public/Cipher/hf_20260618_024440_cc147c57-82c6-4209-9977-e50eb9c3c209.mp4" type="video/mp4">
+</video>
 <div id="renderer-mount"></div>
 <div id="label-layer"></div>
 
@@ -718,7 +730,18 @@
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
     if (id) $(id).classList.add('active');
     $('top-nav').classList.toggle('active', !!id);
+    document.body.classList.toggle('in-game', !id);   // hide bg video once in-game
   }
+  // Slow the background video down and keep it muted/looping.
+  (function setupBgVideo(){
+    const v = document.getElementById('bg-video');
+    if (!v) return;
+    v.muted = true; v.defaultMuted = true; v.playbackRate = 0.5;
+    const kick = () => { v.playbackRate = 0.5; v.play().catch(()=>{}); };
+    v.addEventListener('loadedmetadata', kick);
+    v.addEventListener('canplay', kick);
+    kick();
+  })();
   function msg(text, cls) { const m = $('wallet-msg'); m.textContent = text || ''; m.className = cls || ''; }
 
   // Classic SPL Token + Associated Token Account program IDs.
