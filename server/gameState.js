@@ -153,26 +153,35 @@ class GameState {
     add('church', cx - 40, cz - 32, Math.PI * 0.25, 'Church', 'temple');
     add('school', cx + 22, cz + 64, Math.PI, 'School', 'barracks');
     add('seed_store', cx - 22, cz - 64, 0, 'Seed Store', 'manor');
-    for (let i = 0; i < 7; i++) { const a = (i / 7) * Math.PI * 2 + 0.45; add(pick(houses), cx + Math.cos(a) * 78, cz + Math.sin(a) * 78, a + Math.PI, 'House', 'house'); }
+    // Ring of houses hugging the capital. Try several radii per slot so they
+    // reliably land on buildable grass instead of failing on the paths/ring —
+    // this keeps the area the player actually spawns in looking populated.
+    const ringLabels = ['Cottage', 'Cabin', 'House', 'Farmstead', 'Hut'];
+    for (let i = 0; i < 18; i++) {
+      const a = (i / 18) * Math.PI * 2 + 0.3;
+      for (const r of [96, 116, 138, 160, 184]) {
+        if (add(pick(houses), cx + Math.cos(a) * r, cz + Math.sin(a) * r, a + Math.PI, pick(ringLabels), 'house')) break;
+      }
+    }
 
     // ── Scattered villages ──
     const names = ['Oakhaven', 'Millbrook', 'Stonewell', 'Riverside', 'Greenhollow', 'Ashford', 'Thornwood', 'Eastmere'];
-    for (let v = 0; v < 11; v++) {
-      const ang = (v / 11) * Math.PI * 2 + rnd(-0.35, 0.35);
-      const dist = rnd(150, 480);
+    for (let v = 0; v < 14; v++) {
+      const ang = (v / 14) * Math.PI * 2 + rnd(-0.35, 0.35);
+      const dist = rnd(150, 500);
       const vx = cx + Math.cos(ang) * dist, vz = cz + Math.sin(ang) * dist;
       if (!buildable(vx, vz)) continue;
       const nm = names[v % names.length];
       add(pick(stores), vx, vz, rnd(0, Math.PI * 2), nm + ' Store', 'inn');
-      const n = 3 + Math.floor(Math.random() * 4);
-      for (let i = 0; i < n; i++) { const a = (i / n) * Math.PI * 2 + rnd(-0.2, 0.2); const r = rnd(22, 42); add(pick(houses), vx + Math.cos(a) * r, vz + Math.sin(a) * r, a + Math.PI, 'House', 'house'); }
+      const n = 5 + Math.floor(Math.random() * 4);
+      for (let i = 0; i < n; i++) { const a = (i / n) * Math.PI * 2 + rnd(-0.2, 0.2); const r = rnd(20, 46); add(pick(houses), vx + Math.cos(a) * r, vz + Math.sin(a) * r, a + Math.PI, 'House', 'house'); }
     }
 
     // ── Lone random buildings dotted across the map ──
     const lone = houses.concat(['beach_hut', 'mine_entrance', 'house_gen2', 'house_gen4']);
     const labels = ['Cottage', 'Hut', 'Cabin', 'Farmstead', 'Outpost', 'Shack'];
-    for (let i = 0; i < 34; i++) {
-      const ang = rnd(0, Math.PI * 2), dist = rnd(80, 540);
+    for (let i = 0; i < 70; i++) {
+      const ang = rnd(0, Math.PI * 2), dist = rnd(80, 560);
       add(pick(lone), cx + Math.cos(ang) * dist, cz + Math.sin(ang) * dist, rnd(0, Math.PI * 2), pick(labels), 'house');
     }
 
