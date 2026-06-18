@@ -111,7 +111,7 @@ function sph(r, mat) { const m = new THREE.Mesh(new THREE.SphereGeometry(r, 12, 
 // Load a single asset that can NEVER hang the loading screen: a parse error in
 // the success callback is caught, and a watchdog timeout settles the promise if
 // the request stalls or no callback ever fires. `onObj` may throw safely.
-const ASSET_TIMEOUT_MS = 15000;
+const ASSET_TIMEOUT_MS = 20000;
 function guardedLoad(loader, url, onObj, finish) {
   let settled = false;
   const done = () => { if (settled) return; settled = true; clearTimeout(to); finish(); };
@@ -120,6 +120,35 @@ function guardedLoad(loader, url, onObj, finish) {
     obj => { try { onObj(obj); } catch (e) { console.warn('asset parse error, skipping:', url, e); } done(); },
     undefined,
     err => { console.warn('asset load failed, skipping:', url, err); done(); });
+}
+// Promise-returning wrapper around guardedLoad.
+function guardedLoadP(loader, url, onObj) {
+  return new Promise(res => guardedLoad(loader, url, onObj, res));
+}
+// GLOBAL concurrency gate. Loading/parsing every model at once saturates the
+// main thread — freezing the progress bar and cutting the audio — so we cap how
+// many run together across ALL loaders, and yield to the event loop between
+// items so audio + rendering keep running.
+const LOAD_CONCURRENCY = 4;
+let _loadActive = 0;
+const _loadQueue = [];
+function _loadAcquire() {
+  return new Promise(res => {
+    if (_loadActive < LOAD_CONCURRENCY) { _loadActive++; res(); }
+    else _loadQueue.push(res);
+  });
+}
+function _loadRelease() {
+  _loadActive--;
+  const next = _loadQueue.shift();
+  if (next) { _loadActive++; next(); }
+}
+async function runPool(items, worker) {
+  await Promise.all(items.map(async (item, idx) => {
+    await _loadAcquire();
+    try { await worker(item, idx); await new Promise(r => setTimeout(r, 0)); }
+    finally { _loadRelease(); }
+  }));
 }
 
 // ─── GLTF model library (CC0 Kenney models) ──────────────────────────────────
@@ -133,11 +162,10 @@ const MODEL_LIST = [
 ];
 function loadModels(onProgress) {
   let done = 0;
-  return Promise.all(MODEL_LIST.map(name => new Promise(res => {
-    guardedLoad(gltfLoader, `assets/models/${name}.gltf`,
-      g => { g.scene.traverse(o => { if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; if (o.material) o.material.metalness = 0; } }); MODELS[name] = g.scene; },
-      () => { done++; onProgress && onProgress(done, MODEL_LIST.length); res(); });
-  })));
+  return runPool(MODEL_LIST, name =>
+    guardedLoadP(gltfLoader, `assets/models/${name}.gltf`,
+      g => { g.scene.traverse(o => { if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; if (o.material) o.material.metalness = 0; } }); MODELS[name] = g.scene; })
+    .then(() => { done++; onProgress && onProgress(done, MODEL_LIST.length); }));
 }
 function model(name) {
   const src = MODELS[name]; if (!src) return null;
@@ -169,8 +197,8 @@ function ptConvertMat(m) {
 }
 function loadPolytope(onProgress) {
   let done = 0;
-  return Promise.all(PT_LIST.map(name => new Promise(res => {
-    guardedLoad(fbxLoader, `assets/polytope/models/${name}.fbx`,
+  return runPool(PT_LIST, name =>
+    guardedLoadP(fbxLoader, `assets/polytope/models/${name}.fbx`,
       obj => {
         obj.traverse(o => {
           if (o.isMesh) {
@@ -179,9 +207,8 @@ function loadPolytope(onProgress) {
           }
         });
         PT[name] = obj;
-      },
-      () => { done++; onProgress && onProgress(done, PT_LIST.length); res(); });
-  })));
+      })
+    .then(() => { done++; onProgress && onProgress(done, PT_LIST.length); }));
 }
 function ptModel(name) {
   const src = PT[name]; if (!src) return null;
@@ -210,15 +237,14 @@ function loadFarm(onProgress) {
     if (!texCache[n]) { const t = texLoader.load(`assets/farm/textures/${n}.png`); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = renderer.capabilities.getMaxAnisotropy(); texCache[n] = t; }
     return texCache[n];
   };
-  return Promise.all(FARM_LIST.map(name => new Promise(res => {
-    guardedLoad(fbxLoader, `assets/farm/models/${name}.fbx`,
+  return runPool(FARM_LIST, name =>
+    guardedLoadP(fbxLoader, `assets/farm/models/${name}.fbx`,
       obj => {
         const tex = getTex(FARM_TEX[name]);
         obj.traverse(o => { if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; o.material = new THREE.MeshStandardMaterial({ map: tex, roughness: 0.9, metalness: 0 }); } });
         FARM[name] = obj;
-      },
-      () => { done++; onProgress && onProgress(done, FARM_LIST.length); res(); });
-  })));
+      })
+    .then(() => { done++; onProgress && onProgress(done, FARM_LIST.length); }));
 }
 function farmModel(name) {
   const src = FARM[name]; if (!src) return null;
