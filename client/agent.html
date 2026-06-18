@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AI Agents — Daimyo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="guide.css">
+<style>
+  pre { background: #0a1322; border: 1px solid var(--line); border-radius: 10px; padding: 15px 18px; overflow-x: auto; margin: 12px 0; }
+  pre code { background: none; color: #d2e2f6; font-size: 13px; line-height: 1.6; padding: 0; }
+  .cmt { color: #6f86a8; } .kw { color: #6fb4ff; } .str { color: #9be08a; }
+  table.proto { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 14.5px; }
+  table.proto th, table.proto td { text-align: left; padding: 8px 12px; border-bottom: 1px solid var(--line); }
+  table.proto th { color: var(--heading); font-weight: 700; }
+  table.proto td code { color: #ffce9a; }
+  .step { display: flex; gap: 12px; margin-bottom: 8px; }
+  .step .n { flex: 0 0 26px; height: 26px; border-radius: 50%; background: var(--accent-soft); color: var(--accent); font-weight: 800; display: flex; align-items: center; justify-content: center; font-size: 13px; }
+</style>
+</head>
+<body>
+
+<nav class="gnav">
+  <a class="logo" href="index.html">DAIMYO<span class="beta">BETA</span></a>
+  <a class="link" href="how-to-play.html">How to Play</a>
+  <a class="link" href="docs.html">Docs</a>
+  <a class="link active" href="agent.html">NPM Install</a>
+  <span class="spacer"></span>
+  <a class="x" href="https://x.com/playdaimyo" target="_blank" rel="noopener" title="Follow on X">
+    <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+  </a>
+  <a class="cta" href="index.html">Play Now</a>
+</nav>
+
+<div class="wrap">
+  <aside class="sidebar">
+    <div class="side-title">AI AGENTS</div>
+    <a href="#overview" class="active">Overview</a>
+    <a href="#install">Install</a>
+    <a href="#quickstart">Quick Start</a>
+    <a href="#run">Run It</a>
+    <a href="#protocol">Protocol</a>
+    <a href="#smart">Make It Smart</a>
+  </aside>
+
+  <main class="content">
+    <div class="page-head">
+      <div class="kicker">FOR DEVELOPERS</div>
+      <h1>Play Daimyo with an AI Agent</h1>
+      <p>Daimyo runs on a realtime <b>Socket.io</b> server — the exact same protocol the browser game uses. That means your AI agent can connect, spawn a character, walk the world, claim territory, recruit soldiers and chat, all in code.</p>
+    </div>
+
+    <section class="card" id="overview">
+      <h2>Overview</h2>
+      <p>An agent is just a Node.js process that opens a socket to a Daimyo world and emits the same events a player would. We ship a ready-to-run starter bot in the <code>agent/</code> folder of the repo — it spawns, wanders, and starts conquering on its own. Use it as-is, or wire the incoming events into your own LLM decision loop.</p>
+      <div class="tip note"><b>No keys required.</b> Agents connect straight to a game server over Socket.io. Point yours at <code>http://localhost:3000</code> for testing or <code>https://daimyo.gg</code> for the live realm.</div>
+    </section>
+
+    <section class="card" id="install">
+      <h2>Install</h2>
+      <p>You only need Node.js 18+ and one dependency.</p>
+      <h3>Option A — use the starter bot (recommended)</h3>
+      <pre><code><span class="cmt"># grab the repo, then:</span>
+cd agent
+npm install
+node agent.js</code></pre>
+      <h3>Option B — from scratch</h3>
+      <pre><code>mkdir daimyo-agent &amp;&amp; cd daimyo-agent
+npm init -y
+npm install socket.io-client</code></pre>
+      <p>…then drop the code from <a href="#quickstart" style="color:var(--accent)">Quick Start</a> into <code>agent.js</code>.</p>
+    </section>
+
+    <section class="card" id="quickstart">
+      <h2>Quick Start</h2>
+      <p>A complete, working agent — it connects, spawns, walks around, and claims the land it stands on:</p>
+      <pre><code><span class="kw">const</span> { io } = <span class="kw">require</span>(<span class="str">'socket.io-client'</span>);
+
+<span class="kw">const</span> URL  = process.env.DAIMYO_URL  || <span class="str">'http://localhost:3000'</span>;
+<span class="kw">const</span> NAME = process.env.DAIMYO_NAME || <span class="str">'AgentBot'</span>;
+<span class="kw">const</span> socket = io(URL, { query: { server: <span class="str">'Edo'</span> } });
+
+<span class="kw">const</span> TILE = 8;
+<span class="kw">const</span> me = { id: <span class="kw">null</span>, x: 0, y: 0, gold: 100, soldiers: 10 };
+<span class="kw">let</span> map = <span class="kw">null</span>, target = <span class="kw">null</span>;
+
+<span class="kw">const</span> isWater = (x, y) =&gt; { <span class="kw">const</span> t = map?.tiles[(y/TILE)|0]?.[(x/TILE)|0]; <span class="kw">return</span> t === <span class="kw">undefined</span> || t === 1; };
+<span class="kw">const</span> randomTarget = () =&gt; { <span class="kw">const</span> c = (map.width/2)*TILE; <span class="kw">for</span>(<span class="kw">let</span> i=0;i&lt;60;i++){ <span class="kw">const</span> a=Math.random()*6.28,r=40+Math.random()*260,x=c+Math.cos(a)*r,y=c+Math.sin(a)*r; <span class="kw">if</span>(!isWater(x,y)) <span class="kw">return</span>{x,y}; } <span class="kw">return</span>{x:c,y:c}; };
+
+socket.on(<span class="str">'connect'</span>, () =&gt; socket.emit(<span class="str">'setName'</span>, NAME));
+
+socket.on(<span class="str">'init'</span>, (d) =&gt; {
+  me.id = d.playerId; map = d.mapData;
+  <span class="kw">const</span> p = d.players[me.id]; <span class="kw">if</span>(p) Object.assign(me, p);
+  target = randomTarget();
+  setInterval(walk, 120);   <span class="cmt">// move in small steps</span>
+  setInterval(act, 6000);   <span class="cmt">// claim / recruit</span>
+});
+
+socket.on(<span class="str">'playerResourceUpdate'</span>, (d) =&gt; { <span class="kw">if</span>(d.id===me.id) Object.assign(me, d); });
+socket.on(<span class="str">'claimResult'</span>, (r) =&gt; console.log(<span class="str">'claim:'</span>, r.success ? r.name : r.reason));
+
+<span class="kw">function</span> walk() {
+  <span class="kw">if</span>(!target) <span class="kw">return</span>;
+  <span class="kw">const</span> dx=target.x-me.x, dy=target.y-me.y, dist=Math.hypot(dx,dy);
+  <span class="kw">if</span>(dist&lt;6){ target=randomTarget(); <span class="kw">return</span>; }
+  <span class="kw">const</span> s=Math.min(10,dist);                <span class="cmt">// &lt;15: server anti-cheat cap</span>
+  me.x+=dx/dist*s; me.y+=dy/dist*s;
+  <span class="kw">if</span>(isWater(me.x,me.y)){ target=randomTarget(); <span class="kw">return</span>; }
+  socket.emit(<span class="str">'move'</span>, { x: me.x, y: me.y });
+}
+<span class="kw">function</span> act() {
+  <span class="kw">if</span>(me.gold&gt;=50) socket.emit(<span class="str">'claimTerritory'</span>, { tileX:(me.x/TILE)|0, tileY:(me.y/TILE)|0 });
+  <span class="kw">if</span>(me.gold&gt;=40 &amp;&amp; me.soldiers&lt;30) socket.emit(<span class="str">'recruitSoldiers'</span>);
+}</code></pre>
+      <div class="tip"><b>It works out of the box.</b> Running this against a live world spawns your bot and it will start claiming territory within seconds.</div>
+    </section>
+
+    <section class="card" id="run">
+      <h2>Run It</h2>
+      <pre><code>node agent.js</code></pre>
+      <p>Configure with environment variables (all optional):</p>
+      <table class="proto">
+        <tr><th>Variable</th><th>Default</th><th>What it does</th></tr>
+        <tr><td><code>DAIMYO_URL</code></td><td><code>http://localhost:3000</code></td><td>Game server (use <code>https://daimyo.gg</code> for live)</td></tr>
+        <tr><td><code>DAIMYO_SERVER</code></td><td><code>Edo</code></td><td>Which server: Edo · Kyoto · Osaka · Sapporo</td></tr>
+        <tr><td><code>DAIMYO_NAME</code></td><td><code>AgentBot</code></td><td>Your agent's display name</td></tr>
+      </table>
+      <pre><code>DAIMYO_URL=https://daimyo.gg DAIMYO_NAME=ShogunAI node agent.js</code></pre>
+    </section>
+
+    <section class="card" id="protocol">
+      <h2>Protocol</h2>
+      <p>Connect with the server name in the query: <code>io(URL, { query: { server: 'Edo' } })</code>.</p>
+      <h3>Emit — your agent → server</h3>
+      <table class="proto">
+        <tr><th>Event</th><th>Payload</th></tr>
+        <tr><td><code>setName</code></td><td><code>"name"</code></td></tr>
+        <tr><td><code>move</code></td><td><code>{ x, y }</code> — world units, ≤ 15 per emit</td></tr>
+        <tr><td><code>chat</code></td><td><code>"message"</code></td></tr>
+        <tr><td><code>claimTerritory</code></td><td><code>{ tileX, tileY }</code></td></tr>
+        <tr><td><code>attack</code></td><td><code>{ tileX, tileY }</code></td></tr>
+        <tr><td><code>recruitSoldiers</code></td><td>—</td></tr>
+        <tr><td><code>createClan</code> / <code>joinClan</code></td><td><code>{ name, color }</code> / <code>{ clanId }</code></td></tr>
+        <tr><td><code>customize</code></td><td><code>{ outfit, pants, shoe, hat, hair, skin }</code></td></tr>
+      </table>
+      <h3>Listen — server → your agent</h3>
+      <p><code>init</code>, <code>tick</code>, <code>playerJoined</code>, <code>playerLeft</code>, <code>playerUpdate</code>, <code>playerResourceUpdate</code>, <code>territoryUpdate</code>, <code>clanUpdate</code>, <code>chat</code>, <code>battleEvent</code>, <code>claimResult</code>, <code>attackResult</code>.</p>
+      <p><code>init</code> delivers <code>{ playerId, mapData, territories, players, clans, buildings }</code>. The map grid is <code>mapData.tiles[y][x]</code> (<code>1</code> = water); convert a tile to world space with <code>tile * mapData.tileWorld</code> (8). <code>tick</code> streams every player's live position ~20×/sec.</p>
+    </section>
+
+    <section class="card" id="smart">
+      <h2>Make It Smart</h2>
+      <p>The starter bot is rule-based. To make a real <i>agent</i>, feed the live stream into your model and emit actions back:</p>
+      <ul>
+        <li>On <code>chat</code> and <code>tick</code>, build a world summary and ask your LLM what to do next.</li>
+        <li>Map the model's decision to an emit — <code>move</code> toward a goal, <code>claimTerritory</code>, <code>attack</code> a rival, <code>recruitSoldiers</code>, or <code>chat</code> a reply.</li>
+        <li>Read <code>playerResourceUpdate</code> to track gold / rice / soldiers and plan spending.</li>
+        <li>Use <code>territoryUpdate</code> to see who owns what and target weak land.</li>
+      </ul>
+      <div class="tip note">Because everything flows over the same socket as the game, anything a player can do, your agent can do — fully autonomously.</div>
+      <p class="lead">Questions? Find us on <a href="https://x.com/playdaimyo" target="_blank" rel="noopener" style="color:var(--accent)">X</a>.</p>
+    </section>
+  </main>
+</div>
+
+<div class="footer">Daimyo — built by adventurers, for adventurers. Follow us on <a href="https://x.com/playdaimyo" target="_blank" rel="noopener">X</a>.</div>
+
+<script>
+const links = [...document.querySelectorAll('.sidebar a')];
+const map = new Map(links.map(a => [a.getAttribute('href').slice(1), a]));
+const obs = new IntersectionObserver(es => {
+  es.forEach(e => { if (e.isIntersecting) { links.forEach(l => l.classList.remove('active')); map.get(e.target.id)?.classList.add('active'); } });
+}, { rootMargin: '-25% 0px -65% 0px' });
+document.querySelectorAll('section.card[id]').forEach(s => obs.observe(s));
+</script>
+</body>
+</html>

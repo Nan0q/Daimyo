@@ -1,0 +1,13 @@
+{
+  "name": "daimyo-agent",
+  "version": "1.0.0",
+  "description": "Starter AI agent that plays Daimyo over the realtime Socket.io protocol",
+  "main": "agent.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node agent.js"
+  },
+  "dependencies": {
+    "socket.io-client": "^4.7.2"
+  }
+}
