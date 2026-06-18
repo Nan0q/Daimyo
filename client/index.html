@@ -274,45 +274,46 @@
     #connect-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 18px rgba(240,110,16,0.55); }
 
     /* Home screen centre block */
-    /* Hero — a left-aligned glass card (distinct from the centred competitor look) */
-    #home-screen { align-items: flex-start; justify-content: center; padding-left: 7vw; }
-    .hero-card {
-      max-width: 560px; padding: 36px 42px 30px;
-      background: linear-gradient(155deg, rgba(16,20,32,0.78), rgba(10,13,22,0.62));
-      border: 1px solid rgba(255,255,255,0.10); border-radius: 22px;
-      backdrop-filter: blur(16px); box-shadow: 0 24px 70px rgba(0,0,0,0.5);
+    /* Hero — cinematic, anchored bottom-left over the world (no boxy card) */
+    #home-screen { align-items: flex-start; justify-content: flex-end; padding: 0 0 9vh 7vw; position: relative; }
+    #home-screen::before {
+      content: ''; position: absolute; inset: 0; pointer-events: none;
+      background: linear-gradient(to top, rgba(7,11,20,0.82) 0%, rgba(7,11,20,0.34) 26%, rgba(7,11,20,0) 55%);
     }
+    .hero-card { position: relative; z-index: 1; max-width: 620px; background: none; border: none; backdrop-filter: none; box-shadow: none; padding: 0; }
     .home-title {
-      font-family: 'Cinzel Decorative', 'Cinzel', serif; font-weight: 900; font-size: 74px; letter-spacing: 3px;
-      color: #fff; line-height: 1; margin-bottom: 16px;
-      text-shadow: 0 2px 0 rgba(0,0,0,0.3), 0 6px 22px rgba(0,0,0,0.6);
+      font-family: 'Cinzel Decorative', 'Cinzel', serif; font-weight: 900; font-size: 92px; letter-spacing: 4px;
+      color: #fff; line-height: 0.98; margin-bottom: 14px;
+      text-shadow: 0 3px 0 rgba(0,0,0,0.35), 0 10px 34px rgba(0,0,0,0.75);
     }
     .home-tagline {
-      font-family: 'Rajdhani', sans-serif; font-weight: 500; font-size: 17px; color: #d7deea;
-      text-align: left; max-width: 440px; line-height: 1.5; margin-bottom: 24px;
+      font-family: 'Rajdhani', sans-serif; font-weight: 500; font-size: 18px; color: #e7ecf5;
+      text-align: left; max-width: 480px; line-height: 1.5; margin-bottom: 22px;
+      text-shadow: 0 2px 8px rgba(0,0,0,0.85);
     }
     .home-tagline b { color: #ffd24a; }
     .btn-play {
       font-family: 'Rajdhani', sans-serif; font-weight: 700; font-size: 20px; letter-spacing: 1px; color: #fff;
       background: linear-gradient(135deg, #ff8a1e, #ef6a0e); border: none; border-radius: 12px;
-      padding: 13px 46px; cursor: pointer; box-shadow: 0 6px 20px rgba(240,110,16,0.45);
+      padding: 13px 48px; cursor: pointer; box-shadow: 0 8px 24px rgba(240,110,16,0.5);
       transition: transform 0.12s, box-shadow 0.12s;
     }
-    .btn-play:hover { transform: translateY(-2px); box-shadow: 0 9px 26px rgba(240,110,16,0.6); }
+    .btn-play:hover { transform: translateY(-2px); box-shadow: 0 11px 30px rgba(240,110,16,0.65); }
     .btn-play:disabled { opacity: 0.7; cursor: default; transform: none; }
 
-    .home-stats { display: flex; align-items: stretch; margin: 26px 0 18px; }
-    .hstat { display: flex; flex-direction: column; padding: 0 26px; border-left: 1px solid rgba(255,255,255,0.13); }
-    .hstat:first-child { padding-left: 0; border-left: none; }
+    .home-stats { display: inline-flex; align-items: stretch; margin: 24px 0 16px;
+      background: rgba(10,14,24,0.5); border: 1px solid rgba(255,255,255,0.10); border-radius: 14px; padding: 12px 6px; backdrop-filter: blur(6px); }
+    .hstat { display: flex; flex-direction: column; padding: 2px 24px; border-left: 1px solid rgba(255,255,255,0.13); }
+    .hstat:first-child { border-left: none; }
     .hstat .hnum { display: flex; align-items: center; gap: 8px; }
     .hstat b { font-family: 'Rajdhani', sans-serif; font-weight: 800; font-size: 30px; color: #fff; line-height: 1; }
-    .hstat small { font-family: 'Rajdhani', sans-serif; font-size: 12px; letter-spacing: 1px; text-transform: uppercase; color: #97a1b8; margin-top: 6px; }
+    .hstat small { font-family: 'Rajdhani', sans-serif; font-size: 12px; letter-spacing: 1px; text-transform: uppercase; color: #aeb8cc; margin-top: 6px; }
     .live-dot { width: 9px; height: 9px; border-radius: 50%; background: #4ade6a; box-shadow: 0 0 8px #4ade6a; animation: livepulse 1.8s ease-in-out infinite; }
     @keyframes livepulse { 0%,100% { opacity: 1; } 50% { opacity: 0.35; } }
     #ca-pill {
-      display: inline-block; font-family: 'Rajdhani', sans-serif; font-size: 12px; letter-spacing: 1px; color: #aeb8cc;
-      background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12);
-      border-radius: 8px; padding: 6px 12px;
+      display: inline-block; font-family: 'Rajdhani', sans-serif; font-size: 12px; letter-spacing: 1px; color: #c4ccdd;
+      background: rgba(10,14,24,0.55); border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 8px; padding: 6px 12px; backdrop-filter: blur(6px);
     }
     #wallet-msg {
       margin-top: 16px; font-family: 'Rajdhani', sans-serif; font-weight: 700; font-size: 15px;

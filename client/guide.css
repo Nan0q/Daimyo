@@ -1,21 +1,29 @@
-/* GitBook-style docs theme for the How to Play & Game Guide pages */
+/* GitBook-style docs — deep navy/blue theme */
 *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 :root {
-  --bg: #ffffff;
-  --side-bg: #f7f8fa;
-  --text: #2f3545;
-  --muted: #737a8c;
-  --line: #e8eaee;
-  --accent: #ef6a0e;
-  --accent-soft: #fff3ea;
-  --code-bg: #f3f4f6;
+  --bg: #0e1a30;
+  --bg-2: #0c1628;
+  --side-bg: #0a1322;
+  --text: #c4d2e8;
+  --muted: #8294b4;
+  --line: rgba(120,150,205,0.15);
+  --accent: #57a6ff;
+  --accent-2: #ff8a1e;
+  --accent-soft: rgba(87,166,255,0.12);
+  --code-bg: rgba(120,150,205,0.12);
+  --heading: #eaf1fc;
   --content-w: 760px;
   --side-w: 268px;
   font-synthesis: none;
 }
 html { scroll-behavior: smooth; scroll-padding-top: 80px; }
 body {
-  background: var(--bg); color: var(--text); line-height: 1.65;
+  background:
+    radial-gradient(1200px 700px at 80% -10%, rgba(60,110,200,0.18), transparent 60%),
+    linear-gradient(180deg, #15263f 0%, var(--bg) 12%, var(--bg-2) 100%);
+  background-color: var(--bg);
+  background-attachment: fixed;
+  color: var(--text); line-height: 1.65;
   font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
 }
@@ -24,22 +32,22 @@ body {
 .gnav {
   position: sticky; top: 0; z-index: 50; height: 60px;
   display: flex; align-items: center; gap: 22px; padding: 0 22px;
-  background: rgba(255,255,255,0.9); backdrop-filter: blur(8px);
+  background: rgba(10,18,34,0.82); backdrop-filter: blur(10px);
   border-bottom: 1px solid var(--line);
 }
-.gnav .logo { font-family: 'Cinzel', serif; font-weight: 700; font-size: 19px; letter-spacing: 3px; color: #1c2030; text-decoration: none; }
-.gnav .beta { font-size: 9px; font-weight: 700; letter-spacing: 1px; color: #7a4a10; background: #ffe6c9; padding: 2px 6px; border-radius: 5px; margin-left: 6px; vertical-align: middle; }
-.gnav a.link { color: #4a5163; text-decoration: none; font-weight: 500; font-size: 14.5px; }
-.gnav a.link:hover { color: #1c2030; }
+.gnav .logo { font-family: 'Cinzel', serif; font-weight: 700; font-size: 19px; letter-spacing: 3px; color: #fff; text-decoration: none; }
+.gnav .beta { font-size: 9px; font-weight: 700; letter-spacing: 1px; color: #0a1322; background: var(--accent); padding: 2px 6px; border-radius: 5px; margin-left: 6px; vertical-align: middle; }
+.gnav a.link { color: #aebbd4; text-decoration: none; font-weight: 500; font-size: 14.5px; }
+.gnav a.link:hover { color: #fff; }
 .gnav a.link.active { color: var(--accent); font-weight: 600; }
 .gnav .spacer { flex: 1; }
-.gnav .x { color: #4a5163; display: flex; }
-.gnav .x:hover { color: #1c2030; }
+.gnav .x { color: #aebbd4; display: flex; }
+.gnav .x:hover { color: #fff; }
 .gnav .cta {
   font-weight: 600; font-size: 13.5px; color: #fff; text-decoration: none;
-  background: var(--accent); border-radius: 7px; padding: 8px 16px;
+  background: linear-gradient(135deg, #ff8a1e, #ef6a0e); border-radius: 7px; padding: 8px 16px;
 }
-.gnav .cta:hover { background: #d85f0a; }
+.gnav .cta:hover { filter: brightness(1.06); }
 
 /* Layout: sidebar + centered content */
 .wrap { display: grid; grid-template-columns: var(--side-w) minmax(0, 1fr); align-items: start; }
@@ -49,10 +57,10 @@ body {
 }
 .sidebar .side-title { font-size: 11px; letter-spacing: 1.2px; text-transform: uppercase; color: var(--muted); font-weight: 700; margin: 0 0 10px 12px; }
 .sidebar a {
-  display: block; color: #4a5163; text-decoration: none; font-weight: 500; font-size: 14px;
+  display: block; color: #aebbd4; text-decoration: none; font-weight: 500; font-size: 14px;
   padding: 6px 12px; border-radius: 7px; margin-bottom: 1px;
 }
-.sidebar a:hover { background: #eef0f4; color: #1c2030; }
+.sidebar a:hover { background: rgba(120,150,205,0.10); color: #fff; }
 .sidebar a.active { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
 
 .content { padding: 44px 56px 90px; max-width: calc(var(--content-w) + 112px); }
@@ -60,46 +68,46 @@ body {
 /* Page header */
 .page-head { border-bottom: 1px solid var(--line); padding-bottom: 22px; margin-bottom: 10px; }
 .page-head .kicker { font-size: 12px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--accent); font-weight: 700; }
-.page-head h1 { font-size: 38px; font-weight: 800; color: #161a26; letter-spacing: -0.5px; margin: 8px 0 10px; }
+.page-head h1 { font-size: 38px; font-weight: 800; color: var(--heading); letter-spacing: -0.5px; margin: 8px 0 10px; }
 .page-head p { color: var(--muted); font-size: 17px; max-width: 640px; }
 
 /* Icon strip */
 .icon-strip { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 18px; }
-.icon-strip .it { display: flex; flex-direction: column; align-items: center; gap: 4px; width: 72px; padding: 9px 6px; background: var(--side-bg); border: 1px solid var(--line); border-radius: 10px; }
+.icon-strip .it { display: flex; flex-direction: column; align-items: center; gap: 4px; width: 72px; padding: 9px 6px; background: rgba(120,150,205,0.07); border: 1px solid var(--line); border-radius: 10px; }
 .icon-strip .it .em { font-size: 20px; }
 .icon-strip .it .nm { font-size: 9px; letter-spacing: 0.5px; color: var(--muted); font-weight: 700; }
 
 /* Sections flow continuously (GitBook style) */
 section.card { padding: 26px 0 6px; scroll-margin-top: 76px; }
 section.card + section.card { border-top: 1px solid var(--line); }
-section.card h2 { font-size: 25px; font-weight: 800; color: #161a26; letter-spacing: -0.3px; margin-bottom: 12px; }
-section.card h3 { font-size: 17px; font-weight: 700; color: #232838; margin: 20px 0 6px; }
+section.card h2 { font-size: 25px; font-weight: 800; color: var(--heading); letter-spacing: -0.3px; margin-bottom: 12px; }
+section.card h3 { font-size: 17px; font-weight: 700; color: #dbe6f6; margin: 20px 0 6px; }
 section.card p { font-size: 16px; color: var(--text); margin-bottom: 12px; }
 section.card ul, section.card ol { margin: 0 0 12px 22px; }
 section.card li { font-size: 16px; margin-bottom: 6px; }
-section.card b { color: #161a26; font-weight: 600; }
-section.card code { background: var(--code-bg); border-radius: 5px; padding: 2px 6px; font-family: ui-monospace, 'SFMono-Regular', Menlo, monospace; font-size: 13.5px; color: #b5430a; }
+section.card b { color: var(--heading); font-weight: 600; }
+section.card code { background: var(--code-bg); border-radius: 5px; padding: 2px 6px; font-family: ui-monospace, 'SFMono-Regular', Menlo, monospace; font-size: 13.5px; color: #ffce9a; }
 .lead { color: var(--muted); }
 
 /* Screenshots */
 .shot { position: relative; width: 100%; aspect-ratio: 16 / 7; border-radius: 10px; overflow: hidden;
-  border: 1px solid var(--line); margin: 14px 0; background: #eef1f6;
-  display: flex; align-items: center; justify-content: center; box-shadow: 0 1px 3px rgba(20,30,50,0.06); }
+  border: 1px solid var(--line); margin: 14px 0; background: #0a1322;
+  display: flex; align-items: center; justify-content: center; box-shadow: 0 6px 22px rgba(0,0,0,0.35); }
 .shot img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
-.shot .ph { color: #9aa1b2; font-size: 13px; font-weight: 500; z-index: 1; text-align: center; padding: 0 12px; }
+.shot .ph { color: #6f7e98; font-size: 13px; font-weight: 500; z-index: 1; text-align: center; padding: 0 12px; }
 
 .cap-row { display: flex; gap: 10px; flex-wrap: wrap; margin: -4px 0 10px; }
 .cap-row .cap { flex: 1; min-width: 120px; text-align: center; font-size: 12px; color: var(--muted); }
 
 /* GitBook-style hint callouts */
 .tip { display: flex; gap: 10px; border-radius: 8px; padding: 12px 14px; font-size: 14.5px; margin: 14px 0; line-height: 1.55;
-  background: var(--accent-soft); border: 1px solid #ffe0c4; color: #6b4a26; }
+  background: rgba(255,138,30,0.10); border: 1px solid rgba(255,138,30,0.28); color: #ffd9b0; }
 .tip::before { content: '💡'; }
-.tip.warn { background: #fdecec; border-color: #f7caca; color: #8a3030; }
+.tip.warn { background: rgba(255,90,90,0.10); border-color: rgba(255,90,90,0.30); color: #ffc9c9; }
 .tip.warn::before { content: '⚠️'; }
-.tip.note { background: #eaf2fe; border-color: #cfe0fb; color: #2c4a7a; }
+.tip.note { background: var(--accent-soft); border-color: rgba(87,166,255,0.32); color: #cfe2ff; }
 .tip.note::before { content: 'ℹ️'; }
-.tip b { color: inherit; font-weight: 700; }
+.tip b { color: #fff; font-weight: 700; }
 
 .footer { border-top: 1px solid var(--line); text-align: center; color: var(--muted); font-size: 13.5px; padding: 22px; margin-left: var(--side-w); }
 .footer a { color: var(--accent); text-decoration: none; }
