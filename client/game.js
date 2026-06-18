@@ -238,9 +238,12 @@ function loadFarm(onProgress) {
     return texCache[n];
   };
   return runPool(FARM_LIST, name =>
-    guardedLoadP(fbxLoader, `assets/farm/models/${name}.fbx`,
-      obj => {
+    guardedLoadP(gltfLoader, `assets/farm/glb/${name}.glb`,
+      g => {
+        const obj = g.scene || g;
         const tex = getTex(FARM_TEX[name]);
+        // glTF UVs use the flipY=false convention; match it so textures map right.
+        tex.flipY = false; tex.needsUpdate = true;
         obj.traverse(o => { if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; o.material = new THREE.MeshStandardMaterial({ map: tex, roughness: 0.9, metalness: 0 }); } });
         FARM[name] = obj;
       })

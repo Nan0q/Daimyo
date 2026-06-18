@@ -8,3 +8,6 @@ server/seen.json
 # Unity source project (2.3GB, NOT needed to run the game — assets already live in
 # client/assets/). Keep your local copy; it stays off GitHub.
 My project/
+
+# Model conversion intermediates (unstripped glb)
+/build/glb/
