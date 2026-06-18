@@ -129,7 +129,7 @@ const MODEL_LIST = [
   'tree-big', 'tree-small', 'low-poly-tree',
   'formation-rock', 'formation-stone', 'formation-large-rock', 'plant',
   'house-3', 'house-4', 'house-5', 'house-6', 'house-7', 'house-18', 'barn', 'tower', 'library-large',
-  'barrel', 'chest', 'bed', 'table', 'bench', 'pot', 'bottle', 'sword', 'pillow', 'present',
+  'barrel', 'chest', 'bed', 'bench', 'pot', 'bottle', 'sword', 'pillow', 'present',
 ];
 function loadModels(onProgress) {
   let done = 0;
@@ -196,14 +196,14 @@ const FARM = {};
 const FARM_TEX = {
   animal_store: 'animal_store', beach_hut: 'beach_hut', church: 'church_building',
   clothing_store: 'clothing_store', farm_improvements_store: 'farm_improvements_store',
-  furniture_store: 'furniture_store', harbor: 'harbor',
+  furniture_store: 'furniture_store',
   house_gen1: 'house_gen_1', house_gen2: 'house_gen_2', house_gen3: 'house_gen_3',
   house_gen4: 'house_gen_4', house_gen5: 'house_gen_5', house_gen6: 'house_gen_6',
-  lighthouse: 'lighthouse', mine_entrance: 'mine_entrance', restaurant: 'restaurant',
+  mine_entrance: 'mine_entrance', restaurant: 'restaurant',
   school: 'school_texture', seed_store: 'seed_store', tool_store: 'tool_store', town_hall: 'town_hall',
 };
 const FARM_LIST = Object.keys(FARM_TEX);
-const FARM_FOOT = { town_hall: 20, church: 17, restaurant: 15, school: 16, harbor: 22, lighthouse: 9, mine_entrance: 13 };
+const FARM_FOOT = { town_hall: 20, church: 17, restaurant: 15, school: 16, mine_entrance: 13 };
 function loadFarm(onProgress) {
   let done = 0; const texCache = {};
   const getTex = n => {
