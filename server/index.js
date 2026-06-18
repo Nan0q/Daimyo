@@ -1,4 +1,5 @@
 const express = require('express');
+const compression = require('compression');
 const http = require('http');
 const fs = require('fs');
 const { Server } = require('socket.io');
@@ -11,6 +12,18 @@ const server = http.createServer(app);
 const io = new Server(server, {
   cors: { origin: '*' }
 });
+
+// Gzip everything, including the 3D model files. The .fbx/.gltf/.glb/.bin assets
+// are served as octet-stream, which the default compression filter skips — but
+// they compress to ~25-40% of their size, so force-compress them. This is the
+// single biggest win for load time over a slow connection.
+app.use(compression({
+  level: 6,
+  filter: (req, res) => {
+    if (/\.(fbx|gltf|glb|bin)(\?|$)/i.test(req.path)) return true;
+    return compression.filter(req, res);
+  },
+}));
 
 app.use(express.json());
 // Cache policy: the entry files (HTML/JS/CSS) must always revalidate so a fresh
