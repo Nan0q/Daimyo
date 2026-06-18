@@ -32,7 +32,10 @@ fs.mkdirSync(TMP_DIR, { recursive: true });
         mat.setBaseColorTexture(null).setMetallicRoughnessTexture(null)
            .setNormalTexture(null).setEmissiveTexture(null).setOcclusionTexture(null);
       }
-      await doc.transform(prune(), dedup());
+      // keepAttributes: true preserves TEXCOORD_0 (UVs) — the game re-applies its
+      // own texture in code, which needs the UVs. Without this, prune() drops them
+      // and buildings render black.
+      await doc.transform(prune({ keepAttributes: true }), dedup());
       await io.write(out, doc);
       const inSz = fs.statSync(src).size, outSz = fs.statSync(out).size;
       totalIn += inSz; totalOut += outSz;
