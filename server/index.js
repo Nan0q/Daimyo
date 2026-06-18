@@ -13,7 +13,19 @@ const io = new Server(server, {
 });
 
 app.use(express.json());
-app.use(express.static(path.join(__dirname, '../client')));
+// Cache policy: the entry files (HTML/JS/CSS) must always revalidate so a fresh
+// deploy is picked up immediately instead of a browser serving a stale, mismatched
+// mix of old + new files (which can break loading). Big static art can cache.
+app.use(express.static(path.join(__dirname, '../client'), {
+  etag: true,
+  setHeaders(res, filePath) {
+    if (/\.(html|js|mjs|css)$/i.test(filePath)) {
+      res.setHeader('Cache-Control', 'no-cache');           // revalidate via ETag every load
+    } else {
+      res.setHeader('Cache-Control', 'public, max-age=604800'); // models/textures: cache 7 days
+    }
+  },
+}));
 
 const game = new GameState();
 
