@@ -1910,15 +1910,42 @@ function showSelHighlight(t) {
 }
 
 // ─── Socket ───────────────────────────────────────────────────────────────────
+// World-build is gated on BOTH assets being ready and the server's init payload,
+// whichever finishes last (we connect in parallel with asset loading).
+let assetsReady = false;
+let pendingInit = null;
+function setLoadStatus(text) {
+  const pct = document.getElementById('load-pct');
+  if (pct) pct.textContent = text;
+}
+function maybeBuildWorld() {
+  if (assetsReady && pendingInit) { const d = pendingInit; pendingInit = null; buildWorld(d); }
+}
+
 function connectSocket(name) {
-  socket = io({ query: { server: window.daimyoServer || 'Edo' } });
+  socket = io({
+    query: { server: window.daimyoServer || 'Edo' },
+    reconnection: true, reconnectionAttempts: Infinity,
+    reconnectionDelay: 800, reconnectionDelayMax: 4000, timeout: 20000,
+  });
+  let connected = false;
   socket.on('connect', () => {
+    connected = true;
     socket.emit('setName', name);
+    if (!mapData) setLoadStatus('Connected — preparing world…');
     sysMsg('Welcome to Daimyo! WASD to move · E to emote/enter · F to talk to NPCs.');
     sysMsg('Press Enter to chat. Click any land to claim it, then Attack to conquer.');
     sysMsg('Use the buttons below: Home · Recruit soldiers · Clan · Map (M) · Music.');
   });
-  socket.on('init', data => {
+  socket.on('connect_error', () => { if (!mapData) setLoadStatus('Waking the server… (this can take ~30s)'); });
+  socket.on('disconnect', () => { if (!mapData) setLoadStatus('Reconnecting to server…'); });
+  // The server can be slow to cold-start; nudge the message so it doesn't look frozen.
+  setTimeout(() => { if (!connected && !mapData) setLoadStatus('Waking the server… (this can take ~30s)'); }, 4000);
+  socket.on('init', data => { pendingInit = data; maybeBuildWorld(); });
+  attachGameHandlers();
+}
+
+function buildWorld(data) {
     myId = data.playerId; mapData = data.mapData; territories = data.territories;
     players = data.players; clans = data.clans; serverBuildings = data.buildings || []; serverBridges = data.bridges || [];
     myPlayer = players[myId];
@@ -1939,7 +1966,11 @@ function connectSocket(name) {
     Object.values(players).forEach(spawnOrUpdatePlayer);
     if (myPlayer) { camera.position.set(myPlayer.x, CAM_OUT.height, myPlayer.y + CAM_OUT.dist); }
     updateHUD();
-  });
+    // World is ready — drop the loading overlay.
+    const loading = document.getElementById('game-loading'); if (loading) loading.style.display = 'none';
+}
+
+function attachGameHandlers() {
   socket.on('tick', data => {
     data.players.forEach(p => {
       if (p.id === myId) return;
@@ -2383,12 +2414,18 @@ window.enterGame = async (username) => {
     if (fill) fill.style.width = p + '%';
     if (pct) pct.textContent = `Loading ${p}%`;
   };
+  // Start connecting to the server immediately, in parallel with asset loading,
+  // so a cold-starting host boots while models download instead of after.
+  connectSocket(name);
   await Promise.all([
     loadModels((d, t) => { kDone = d; kTot = t; upd(); }),
     loadPolytope((d, t) => { pDone = d; pTot = t; upd(); }),
     loadFarm((d, t) => { fDone = d; fTot = t; upd(); }),
     loadBridge(),
   ]);
-  if (loading) loading.style.display = 'none';
-  connectSocket(name);
+  // Assets done. The world builds once the server's init payload also arrives
+  // (maybeBuildWorld), which then hides the loading overlay.
+  assetsReady = true;
+  if (pendingInit) maybeBuildWorld();
+  else setLoadStatus('Connecting to server…');
 };
