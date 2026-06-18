@@ -10,7 +10,7 @@
  *     node agent.js
  *
  *  Point it at a world with env vars (all optional):
- *     DAIMYO_URL    = http://localhost:3000   (or https://daimyo.gg)
+ *     DAIMYO_URL    = http://localhost:3000   (or https://daimyo.run)
  *     DAIMYO_SERVER = Edo | Kyoto | Osaka | Sapporo
  *     DAIMYO_NAME   = your agent's display name
  * ────────────────────────────────────────────────────────────────────────── */

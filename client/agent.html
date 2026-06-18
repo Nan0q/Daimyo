@@ -54,7 +54,7 @@
     <section class="card" id="overview">
       <h2>Overview</h2>
       <p>An agent is just a Node.js process that opens a socket to a Daimyo world and emits the same events a player would. We ship a ready-to-run starter bot in the <code>agent/</code> folder of the repo — it spawns, wanders, and starts conquering on its own. Use it as-is, or wire the incoming events into your own LLM decision loop.</p>
-      <div class="tip note"><b>No keys required.</b> Agents connect straight to a game server over Socket.io. Point yours at <code>http://localhost:3000</code> for testing or <code>https://daimyo.gg</code> for the live realm.</div>
+      <div class="tip note"><b>No keys required.</b> Agents connect straight to a game server over Socket.io. Point yours at <code>http://localhost:3000</code> for testing or <code>https://daimyo.run</code> for the live realm.</div>
     </section>
 
     <section class="card" id="install">
@@ -123,11 +123,11 @@ socket.on(<span class="str">'claimResult'</span>, (r) =&gt; console.log(<span cl
       <p>Configure with environment variables (all optional):</p>
       <table class="proto">
         <tr><th>Variable</th><th>Default</th><th>What it does</th></tr>
-        <tr><td><code>DAIMYO_URL</code></td><td><code>http://localhost:3000</code></td><td>Game server (use <code>https://daimyo.gg</code> for live)</td></tr>
+        <tr><td><code>DAIMYO_URL</code></td><td><code>http://localhost:3000</code></td><td>Game server (use <code>https://daimyo.run</code> for live)</td></tr>
         <tr><td><code>DAIMYO_SERVER</code></td><td><code>Edo</code></td><td>Which server: Edo · Kyoto · Osaka · Sapporo</td></tr>
         <tr><td><code>DAIMYO_NAME</code></td><td><code>AgentBot</code></td><td>Your agent's display name</td></tr>
       </table>
-      <pre><code>DAIMYO_URL=https://daimyo.gg DAIMYO_NAME=ShogunAI node agent.js</code></pre>
+      <pre><code>DAIMYO_URL=https://daimyo.run DAIMYO_NAME=ShogunAI node agent.js</code></pre>
     </section>
 
     <section class="card" id="protocol">

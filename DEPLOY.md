@@ -1,4 +1,4 @@
-# Deploying Daimyo to daimyo.gg
+# Deploying Daimyo to daimyo.run
 
 Daimyo is a Node.js + Socket.io game. It needs an **always-on Node server with
 WebSocket support** — NOT a static/serverless host (no Netlify, GitHub Pages, or
@@ -23,11 +23,11 @@ Great for getting live in ~15 minutes with automatic HTTPS.
    - Start command: `npm start`
    - It auto-detects the port from `process.env.PORT`.
 3. Add your domain:
-   - In the service settings → **Custom Domains** → add `daimyo.gg` (and `www.daimyo.gg`).
+   - In the service settings → **Custom Domains** → add `daimyo.run` (and `www.daimyo.run`).
    - The platform shows a DNS target. At your domain registrar (where you bought
-     daimyo.gg) add:
+     daimyo.run) add:
      - `CNAME  www   → <target>.up.railway.app` (or render's target)
-     - For the root `daimyo.gg`, use the registrar's **ALIAS/ANAME** record to the
+     - For the root `daimyo.run`, use the registrar's **ALIAS/ANAME** record to the
        same target (or an `A` record to the IP they give you).
 4. SSL is issued automatically. Done.
 
@@ -44,7 +44,7 @@ Great for getting live in ~15 minutes with automatic HTTPS.
 
 Full control, real persistence, cheap. Steps on a fresh **Ubuntu 22.04** box.
 
-1. **DNS first.** At your registrar point daimyo.gg at the server's IP:
+1. **DNS first.** At your registrar point daimyo.run at the server's IP:
    - `A   @    → <server-ip>`
    - `A   www  → <server-ip>`
 
@@ -69,7 +69,7 @@ Full control, real persistence, cheap. Steps on a fresh **Ubuntu 22.04** box.
    ```nginx
    server {
      listen 80;
-     server_name daimyo.gg www.daimyo.gg;
+     server_name daimyo.run www.daimyo.run;
 
      location / {
        proxy_pass http://127.0.0.1:3000;
@@ -92,7 +92,7 @@ Full control, real persistence, cheap. Steps on a fresh **Ubuntu 22.04** box.
 5. **Free SSL** with Let's Encrypt:
    ```bash
    sudo apt-get install -y certbot python3-certbot-nginx
-   sudo certbot --nginx -d daimyo.gg -d www.daimyo.gg
+   sudo certbot --nginx -d daimyo.run -d www.daimyo.run
    ```
    Certbot edits the Nginx config for HTTPS and auto-renews.
 
@@ -121,11 +121,11 @@ Mounting `-v .../server:/app/server` keeps `users.json` / `seen.json` on the hos
 - The wallet gate uses MetaMask + a Base RPC; browsers require a **secure origin**
   for full wallet behavior, and Socket.io upgrades to **wss://** under HTTPS.
 - All three options above give you HTTPS, so the wallet flow and live multiplayer
-  work on `https://daimyo.gg`.
+  work on `https://daimyo.run`.
 
 ## Checklist
 - [ ] App reachable on a Node host (Railway/Render/VPS), single instance
-- [ ] daimyo.gg + www.daimyo.gg DNS pointed at it
+- [ ] daimyo.run + www.daimyo.run DNS pointed at it
 - [ ] HTTPS issued (auto on PaaS / Certbot on VPS)
 - [ ] WebSocket upgrade headers present (PaaS handles it; Nginx config above)
 - [ ] `server/users.json` + `server/seen.json` on persistent storage

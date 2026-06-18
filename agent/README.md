@@ -1,6 +1,6 @@
 # Daimyo AI Agent
 
-A minimal, working bot that plays [Daimyo](https://daimyo.gg) by connecting to the
+A minimal, working bot that plays [Daimyo](https://daimyo.run) by connecting to the
 same realtime (Socket.io) server the browser game uses.
 
 ## Quick start
@@ -14,7 +14,7 @@ node agent.js
 By default it connects to `http://localhost:3000`. To play the live world:
 
 ```bash
-DAIMYO_URL=https://daimyo.gg DAIMYO_SERVER=Edo DAIMYO_NAME=MyAgent node agent.js
+DAIMYO_URL=https://daimyo.run DAIMYO_SERVER=Edo DAIMYO_NAME=MyAgent node agent.js
 ```
 
 ## What it does
