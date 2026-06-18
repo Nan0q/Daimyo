@@ -163,8 +163,10 @@ class GameState {
     // never land on sidewalks. Sweeping every angle at many radii fills the grass
     // pockets evenly in all directions (no more clustering to one side).
     const ringLabels = ['Cottage', 'Cabin', 'House', 'Farmstead', 'Hut'];
-    for (const r of [88, 104, 120, 137, 155, 174, 194, 215]) {
-      const slots = Math.max(12, Math.round(r / 6.5));   // more slots as the ring grows
+    // Rings reach from right beside the plaza all the way out to the village band,
+    // so there is no empty "donut" of grass around the capital.
+    for (const r of [88, 104, 120, 137, 155, 174, 194, 215, 238, 262, 288, 315, 344]) {
+      const slots = Math.max(12, Math.round(r / 7));     // more slots as the ring grows
       for (let i = 0; i < slots; i++) {
         const a = (i / slots) * Math.PI * 2 + r * 0.017; // stagger each ring so they interleave
         add(pick(houses), cx + Math.cos(a) * r, cz + Math.sin(a) * r, a + Math.PI, pick(ringLabels), 'house');
