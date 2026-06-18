@@ -108,6 +108,20 @@ function cyl(rt, rb, h, seg, mat) { const m = new THREE.Mesh(new THREE.CylinderG
 function cone(r, h, seg, mat) { const m = new THREE.Mesh(new THREE.ConeGeometry(r, h, seg), mat); m.castShadow = true; m.receiveShadow = true; return m; }
 function sph(r, mat) { const m = new THREE.Mesh(new THREE.SphereGeometry(r, 12, 12), mat); m.castShadow = true; return m; }
 
+// Load a single asset that can NEVER hang the loading screen: a parse error in
+// the success callback is caught, and a watchdog timeout settles the promise if
+// the request stalls or no callback ever fires. `onObj` may throw safely.
+const ASSET_TIMEOUT_MS = 15000;
+function guardedLoad(loader, url, onObj, finish) {
+  let settled = false;
+  const done = () => { if (settled) return; settled = true; clearTimeout(to); finish(); };
+  const to = setTimeout(() => { console.warn('asset timed out, skipping:', url); done(); }, ASSET_TIMEOUT_MS);
+  loader.load(url,
+    obj => { try { onObj(obj); } catch (e) { console.warn('asset parse error, skipping:', url, e); } done(); },
+    undefined,
+    err => { console.warn('asset load failed, skipping:', url, err); done(); });
+}
+
 // ─── GLTF model library (CC0 Kenney models) ──────────────────────────────────
 const gltfLoader = new GLTFLoader();
 const MODELS = {};
@@ -120,10 +134,9 @@ const MODEL_LIST = [
 function loadModels(onProgress) {
   let done = 0;
   return Promise.all(MODEL_LIST.map(name => new Promise(res => {
-    gltfLoader.load(`assets/models/${name}.gltf`,
-      g => { g.scene.traverse(o => { if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; if (o.material) o.material.metalness = 0; } }); MODELS[name] = g.scene; done++; onProgress && onProgress(done, MODEL_LIST.length); res(); },
-      undefined,
-      err => { console.warn('model load failed:', name, err); done++; onProgress && onProgress(done, MODEL_LIST.length); res(); });
+    guardedLoad(gltfLoader, `assets/models/${name}.gltf`,
+      g => { g.scene.traverse(o => { if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; if (o.material) o.material.metalness = 0; } }); MODELS[name] = g.scene; },
+      () => { done++; onProgress && onProgress(done, MODEL_LIST.length); res(); });
   })));
 }
 function model(name) {
@@ -157,7 +170,7 @@ function ptConvertMat(m) {
 function loadPolytope(onProgress) {
   let done = 0;
   return Promise.all(PT_LIST.map(name => new Promise(res => {
-    fbxLoader.load(`assets/polytope/models/${name}.fbx`,
+    guardedLoad(fbxLoader, `assets/polytope/models/${name}.fbx`,
       obj => {
         obj.traverse(o => {
           if (o.isMesh) {
@@ -165,10 +178,9 @@ function loadPolytope(onProgress) {
             o.material = Array.isArray(o.material) ? o.material.map(ptConvertMat) : ptConvertMat(o.material);
           }
         });
-        PT[name] = obj; done++; onProgress && onProgress(done, PT_LIST.length); res();
+        PT[name] = obj;
       },
-      undefined,
-      err => { console.warn('FBX load failed:', name, err); done++; onProgress && onProgress(done, PT_LIST.length); res(); });
+      () => { done++; onProgress && onProgress(done, PT_LIST.length); res(); });
   })));
 }
 function ptModel(name) {
@@ -199,14 +211,13 @@ function loadFarm(onProgress) {
     return texCache[n];
   };
   return Promise.all(FARM_LIST.map(name => new Promise(res => {
-    fbxLoader.load(`assets/farm/models/${name}.fbx`,
+    guardedLoad(fbxLoader, `assets/farm/models/${name}.fbx`,
       obj => {
         const tex = getTex(FARM_TEX[name]);
         obj.traverse(o => { if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; o.material = new THREE.MeshStandardMaterial({ map: tex, roughness: 0.9, metalness: 0 }); } });
-        FARM[name] = obj; done++; onProgress && onProgress(done, FARM_LIST.length); res();
+        FARM[name] = obj;
       },
-      undefined,
-      err => { console.warn('farm FBX failed:', name, err); done++; onProgress && onProgress(done, FARM_LIST.length); res(); });
+      () => { done++; onProgress && onProgress(done, FARM_LIST.length); res(); });
   })));
 }
 function farmModel(name) {
@@ -2417,11 +2428,17 @@ window.enterGame = async (username) => {
   // Start connecting to the server immediately, in parallel with asset loading,
   // so a cold-starting host boots while models download instead of after.
   connectSocket(name);
-  await Promise.all([
+  const assetLoad = Promise.all([
     loadModels((d, t) => { kDone = d; kTot = t; upd(); }),
     loadPolytope((d, t) => { pDone = d; pTot = t; upd(); }),
     loadFarm((d, t) => { fDone = d; fTot = t; upd(); }),
     loadBridge(),
+  ]);
+  // Backstop: never let asset loading freeze the screen. Each asset already has
+  // its own timeout; this guarantees we proceed even if something unforeseen hangs.
+  await Promise.race([
+    assetLoad,
+    new Promise(r => setTimeout(() => { console.warn('asset load watchdog fired — entering with whatever loaded'); r(); }, ASSET_TIMEOUT_MS + 5000)),
   ]);
   // Assets done. The world builds once the server's init payload also arrives
   // (maybeBuildWorld), which then hides the loading overlay.
