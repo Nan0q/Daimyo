@@ -40,7 +40,7 @@
     <a href="#movement">Movement &amp; Camera</a>
     <a href="#chat">Chat &amp; Emotes</a>
     <a href="#keys">Keybindings</a>
-    <a href="#wallet">Wallet &amp; Base</a>
+    <a href="#wallet">Wallet &amp; SOL</a>
     <a href="#trouble">Troubleshooting</a>
   </aside>
 
@@ -48,13 +48,13 @@
     <div class="page-head">
       <div class="kicker">DOCUMENTATION</div>
       <h1>Game Guide</h1>
-      <p>The complete reference for Daimyo — an isometric feudal-Japan MMO on <b>Base</b>, where you claim land, command soldiers, trade with NPCs, and rule with your clan.</p>
+      <p>The complete reference for Daimyo — an isometric feudal-Japan MMO on <b>SOL</b>, where you claim land, command soldiers, trade with NPCs, and rule with your clan.</p>
       <div class="shot"><img src="assets/guide/hero.jpg" onerror="this.remove()"><span class="ph">📷 The realm of Daimyo</span></div>
     </div>
 
     <section class="card" id="intro">
       <h2>Introduction</h2>
-      <p>Daimyo is a browser-based, real-time multiplayer world rendered in 3D. You play a warrior building influence across a feudal-Japan realm: gather resources from tasks, claim and conquer territory, grow an army, found a clan, and trade with townsfolk. The project token, <b>$DYMO</b>, lives on the <b>Base</b> network and gates entry to the game.</p>
+      <p>Daimyo is a browser-based, real-time multiplayer world rendered in 3D. You play a warrior building influence across a feudal-Japan realm: gather resources from tasks, claim and conquer territory, grow an army, found a clan, and trade with townsfolk. The project token, <b>$DYMO</b>, lives on the <b>SOL</b> network and gates entry to the game.</p>
       <p class="lead">This guide documents systems that are live today. Beta is evolving quickly — features marked <b>(planned)</b> are not in the build yet.</p>
     </section>
 
@@ -62,11 +62,11 @@
       <h2>Account &amp; $DYMO</h2>
       <p>There is no email/password sign-up. Your identity is your <b>wallet</b>:</p>
       <ul>
-        <li>Connect <b>MetaMask</b> from the landing page.</li>
-        <li>The game reads your <b>$DYMO</b> balance on Base. You must hold <b>≥ 1,000 $DYMO</b> to enter.</li>
+        <li>Connect <b>Phantom</b> from the landing page.</li>
+        <li>The game reads your <b>$DYMO</b> balance on SOL. You must hold <b>≥ 1,000 $DYMO</b> to enter.</li>
         <li>The first time a wallet connects you choose a <b>username</b>; it is saved to that wallet, so you skip straight to server select next time.</li>
       </ul>
-      <p>Token contract (Base): <code>0xbc3ed2770b113fa60c461ebd4734429cb4b5cb07</code></p>
+      <p>Token contract (SOL): <code>0xbc3ed2770b113fa60c461ebd4734429cb4b5cb07</code></p>
       <div class="tip note"><b>Privacy:</b> Connecting only proves you hold the token and links your chosen name. Daimyo never moves funds and never asks for a seed phrase.</div>
     </section>
 
@@ -74,7 +74,7 @@
       <h2>Your First Session</h2>
       <ol>
         <li>Open the site and click <b>Play Now</b> (or <b>Connect Wallet</b>).</li>
-        <li>Approve the connection in MetaMask. If you hold 1,000+ $DYMO you pass the gate.</li>
+        <li>Approve the connection in Phantom. If you hold 1,000+ $DYMO you pass the gate.</li>
         <li>Enter a username (first time only), then pick a <b>server</b>.</li>
         <li>You spawn at the <b>Imperial Capital</b>. Move with WASD, talk to NPCs with F, and enter buildings with E to do tasks for starting Gold.</li>
         <li>Recruit a few soldiers, then click nearby land to claim your first territory.</li>
@@ -167,7 +167,7 @@
         <li><b>⚔️ Soldiers</b> — your army for attack and defense.</li>
         <li><b>🏯 Lands</b> — territories you own (passive income).</li>
       </ul>
-      <p><b>$DYMO</b> is the on-chain token (Base) used to gate access; in-game balances above are off-chain and server-tracked. On-chain marketplace trading of items for $DYMO is <b>(planned)</b>.</p>
+      <p><b>$DYMO</b> is the on-chain token (SOL) used to gate access; in-game balances above are off-chain and server-tracked. On-chain marketplace trading of items for $DYMO is <b>(planned)</b>.</p>
     </section>
 
     <section class="card" id="movement">
@@ -200,16 +200,16 @@
     </section>
 
     <section class="card" id="wallet">
-      <h2>Wallet &amp; Base</h2>
-      <p>Daimyo uses <b>MetaMask</b> and the <b>Base</b> network. On connect, the game queries your balance of the $DYMO contract via a Base RPC. You do <b>not</b> need to switch networks just to log in — the balance check reads Base directly. Holding fewer than 1,000 $DYMO shows: <i>"You must own 1,000 $DYMO to play."</i></p>
+      <h2>Wallet &amp; SOL</h2>
+      <p>Daimyo uses the <b>Phantom</b> wallet on <b>SOL</b>. On connect, the game queries your $DYMO balance on-chain. You do <b>not</b> need to do anything beyond connecting — the balance check is read-only. Holding fewer than 1,000 $DYMO shows: <i>"You must own 1,000 $DYMO to play."</i></p>
       <div class="tip warn"><b>Security:</b> Never share a seed phrase. Logging in requires only a read-only connection — no transaction or token approval.</div>
     </section>
 
     <section class="card" id="trouble">
       <h2>Troubleshooting</h2>
       <ul>
-        <li><b>"MetaMask not found"</b> — install the MetaMask extension and refresh.</li>
-        <li><b>Gate says you don't own $DYMO</b> — confirm the tokens are on <b>Base</b> in the connected address.</li>
+        <li><b>"Phantom not found"</b> — install the Phantom extension and refresh.</li>
+        <li><b>Gate says you don't own $DYMO</b> — confirm the tokens are on <b>SOL</b> in the connected address.</li>
         <li><b>Stuck on loading</b> — the 3D assets are downloading; give it a moment, then refresh if needed.</li>
         <li><b>Wrong username remembered</b> — it's tied to your wallet; reconnect with the right wallet.</li>
         <li><b>Performance</b> — close other heavy tabs; the world streams a lot of geometry.</li>

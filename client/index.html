@@ -738,13 +738,18 @@
       body: JSON.stringify({ wallet: addr, username: name }) }); } catch {}
   }
 
+  // Phantom wallet (multi-chain) — use its provider for the $DYMO contract.
+  function phantomProvider() {
+    return window.phantom?.ethereum || (window.ethereum && window.ethereum.isPhantom ? window.ethereum : null);
+  }
   window.daimyoConnect = async function () {
     msg('');
-    if (!window.ethereum) { msg('MetaMask not found — please install MetaMask to play.', 'err'); return; }
+    const provider = phantomProvider();
+    if (!provider) { msg('Phantom not found — please install the Phantom wallet to play.', 'err'); return; }
     const btn = $('play-btn'), cbtn = $('connect-btn'), old = btn.textContent;
     btn.disabled = true; btn.textContent = 'Connecting…'; cbtn.textContent = 'Connecting…';
     try {
-      const accts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+      const accts = await provider.request({ method: 'eth_requestAccounts' });
       wallet = accts[0];
       window.daimyoWallet = wallet;
       cbtn.textContent = wallet.slice(0, 6) + '…' + wallet.slice(-4);
