@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <title>Daimyo</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700&family=Cinzel:wght@400;600;700&family=Rajdhani:wght@400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700;900&family=Cinzel:wght@400;600;700&family=Rajdhani:wght@400;500;600&display=swap" rel="stylesheet">
   <style>
     *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
     body { background: #0a0f1a; overflow: hidden; font-family: 'Rajdhani', sans-serif; }
@@ -245,7 +245,7 @@
     /* ── Landing / menu flow ───────────────────────── */
     .screen {
       position: fixed; inset: 0; z-index: 1000; display: none;
-      background-image: linear-gradient(rgba(6,12,20,0.35), rgba(6,12,20,0.5)), url('https://kvzwukjcvwcopmtqkiih.supabase.co/storage/v1/object/public/Cipher/hf_20260615_153817_68b6b221-8a81-4ffe-8918-2ee19ebbcda0%20(1).png');
+      background-image: url('https://kvzwukjcvwcopmtqkiih.supabase.co/storage/v1/object/public/Cipher/hf_20260615_153817_68b6b221-8a81-4ffe-8918-2ee19ebbcda0%20(1).png');
       background-color: #2a4a6a;           /* fallback */
       background-size: cover; background-position: center;
       flex-direction: column; align-items: center; justify-content: center;
@@ -275,8 +275,9 @@
 
     /* Home screen centre block */
     .home-title {
-      font-family: 'Cinzel', serif; font-weight: 700; font-size: 92px; letter-spacing: 10px;
-      color: #fff; text-shadow: 0 4px 18px rgba(0,0,0,0.7), 0 0 2px rgba(0,0,0,0.9); margin-bottom: 14px;
+      font-family: 'Cinzel Decorative', 'Cinzel', serif; font-weight: 900; font-size: 104px; letter-spacing: 6px;
+      color: #fff; margin-bottom: 14px;
+      text-shadow: 0 3px 0 rgba(0,0,0,0.35), 0 6px 26px rgba(0,0,0,0.8), 0 0 4px rgba(0,0,0,0.95);
     }
     .home-tagline {
       font-family: 'Rajdhani', sans-serif; font-weight: 600; font-size: 17px; color: #eef3e8;
@@ -653,7 +654,7 @@
     <span class="stat-pill"><span class="stat-dot"></span><b id="stat-online">—</b>&nbsp;players online</span>
     <span class="stat-pill"><span class="stat-dot"></span><b id="stat-monthly">—</b>&nbsp;players monthly</span>
   </div>
-  <div id="ca-pill" onclick="window.daimyoCopyCA()" title="Click to copy">CA: 0xbc3ed2770b113fa60c461ebd4734429cb4b5cb07</div>
+  <div id="ca-pill">CA:</div>
   <div id="wallet-msg"></div>
 </div>
 
