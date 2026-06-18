@@ -130,12 +130,17 @@ class GameState {
     // A spot is buildable only if it (and a small footprint around it) is plain
     // ground — never water, mountain, a road, the stone ring, or a dirt patch.
     // This keeps houses & shops off the paths.
+    // Scan the whole building footprint on a fine grid so no narrow path/ring can
+    // slip between sample points — a house's base must be entirely clear ground.
+    // (Sample step < path width guarantees any crossing path is detected.)
     const buildable = (x, z) => {
-      for (const [dx, dz] of [[0, 0], [11, 0], [-11, 0], [0, 11], [0, -11]]) {
-        const tx = Math.floor((x + dx) / TW), tz = Math.floor((z + dz) / TW);
-        const t = this.mapData.tiles[tz]?.[tx];
-        if (t === undefined || t === TILE.WATER || t === TILE.MOUNTAIN ||
-            t === TILE.ROAD || t === TILE.TOWN || t === TILE.DIRT) return false;
+      for (let dx = -13; dx <= 13; dx += 6.5) {
+        for (let dz = -13; dz <= 13; dz += 6.5) {
+          const tx = Math.floor((x + dx) / TW), tz = Math.floor((z + dz) / TW);
+          const t = this.mapData.tiles[tz]?.[tx];
+          if (t === undefined || t === TILE.WATER || t === TILE.MOUNTAIN ||
+              t === TILE.ROAD || t === TILE.TOWN || t === TILE.DIRT) return false;
+        }
       }
       return true;
     };
@@ -143,7 +148,7 @@ class GameState {
     // Keep buildings out of the farm plot (placed client-side at this same spot).
     const FARM = { x: cx + 118, z: cz + 96, r: 46 };
     const add = (model, x, z, rot, label, type) => {
-      if (!buildable(x, z) || tooClose(x, z, 16)) return false;
+      if (!buildable(x, z) || tooClose(x, z, 15)) return false;
       if (Math.hypot(FARM.x - x, FARM.z - z) < FARM.r) return false;
       list.push({ id: 'b' + (idc++), model, x, z, rot, label, type, enterable: true });
       return true;
