@@ -151,6 +151,17 @@ async function runPool(items, worker) {
   }));
 }
 
+// Cache-busting: append a version to every local asset URL so that when an asset
+// changes, browsers fetch the new file instead of serving a stale 7-day-cached
+// copy (which once left buildings black). Bump ASSET_VER whenever assets change.
+const ASSET_VER = '3';
+THREE.DefaultLoadingManager.setURLModifier((url) => {
+  if (typeof url === 'string' && url.indexOf('assets/') === 0 && url.indexOf('?') === -1) {
+    return url + '?v=' + ASSET_VER;
+  }
+  return url;
+});
+
 // ─── GLTF model library (CC0 Kenney models) ──────────────────────────────────
 const gltfLoader = new GLTFLoader();
 const MODELS = {};
