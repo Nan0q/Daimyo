@@ -319,7 +319,7 @@
     .live-dot { width: 9px; height: 9px; border-radius: 50%; background: #4ade6a; box-shadow: 0 0 8px #4ade6a; animation: livepulse 1.8s ease-in-out infinite; }
     @keyframes livepulse { 0%,100% { opacity: 1; } 50% { opacity: 0.35; } }
     #ca-pill {
-      display: block; width: fit-content; margin-top: 2px;
+      display: block; width: fit-content; margin: 12px 0 0 30px;
       font-family: 'Rajdhani', sans-serif; font-size: 12px; letter-spacing: 1px; color: #c4ccdd;
       background: rgba(10,14,24,0.55); border: 1px solid rgba(255,255,255,0.12);
       border-radius: 8px; padding: 6px 12px; backdrop-filter: blur(6px);
@@ -736,8 +736,8 @@
   (function setupBgVideo(){
     const v = document.getElementById('bg-video');
     if (!v) return;
-    v.muted = true; v.defaultMuted = true; v.playbackRate = 0.5;
-    const kick = () => { v.playbackRate = 0.5; v.play().catch(()=>{}); };
+    v.muted = true; v.defaultMuted = true; v.playbackRate = 0.7;
+    const kick = () => { v.playbackRate = 0.7; v.play().catch(()=>{}); };
     v.addEventListener('loadedmetadata', kick);
     v.addEventListener('canplay', kick);
     kick();
