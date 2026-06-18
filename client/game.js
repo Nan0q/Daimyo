@@ -2050,7 +2050,7 @@ window.goHome = () => {
 };
 
 // ─── Character page (customize + loot) ────────────────────────────────────────
-const customKey = () => 'daimyo_custom_' + (window.daimyoWallet || window.daimyoUsername || 'guest').toLowerCase();
+const customKey = () => 'daimyo_custom_' + (window.daimyoWallet || window.daimyoUsername || 'guest');
 function loadMyCustom() { try { return JSON.parse(localStorage.getItem(customKey())) || null; } catch { return null; } }
 function saveMyCustom(c) { try { localStorage.setItem(customKey(), JSON.stringify(c)); } catch {} }
 

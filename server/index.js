@@ -27,22 +27,24 @@ const SEEN_FILE = path.join(__dirname, 'seen.json');
 let seen = {};
 try { seen = JSON.parse(fs.readFileSync(SEEN_FILE, 'utf8')); } catch { seen = {}; }
 let seenDirty = false;
+// A Solana address (base58, 32-44 chars) — case-sensitive, so we don't lowercase.
+const WALLET_RE = /^[1-9A-HJ-NP-Za-km-z]{32,44}$/;
 function recordSeen(wallet) {
-  const w = String(wallet || '').toLowerCase();
-  if (!/^0x[0-9a-f]{40}$/.test(w)) return;
+  const w = String(wallet || '');
+  if (!WALLET_RE.test(w)) return;
   seen[w] = Date.now(); seenDirty = true;
 }
 // Flush the seen map to disk at most once a second.
 setInterval(() => { if (seenDirty) { seenDirty = false; fs.writeFile(SEEN_FILE, JSON.stringify(seen), () => {}); } }, 1000);
 
 app.get('/api/user', (req, res) => {
-  const w = String(req.query.wallet || '').toLowerCase();
+  const w = String(req.query.wallet || '');
   res.json({ username: users[w] || null });
 });
 app.post('/api/user', (req, res) => {
-  const w = String((req.body && req.body.wallet) || '').toLowerCase();
+  const w = String((req.body && req.body.wallet) || '');
   const name = String((req.body && req.body.username) || '').trim().slice(0, 20);
-  if (!/^0x[0-9a-f]{40}$/.test(w) || !name) return res.status(400).json({ error: 'bad request' });
+  if (!WALLET_RE.test(w) || !name) return res.status(400).json({ error: 'bad request' });
   users[w] = name;
   fs.writeFile(USERS_FILE, JSON.stringify(users), () => {});
   res.json({ ok: true, username: name });

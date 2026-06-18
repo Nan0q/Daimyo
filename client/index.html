@@ -700,12 +700,17 @@
   #load-pct { font-family: 'Rajdhani', sans-serif; color: #9fb89a; font-weight: 600; letter-spacing: 1px; }
 </style>
 
+<script src="https://cdn.jsdelivr.net/npm/@solana/web3.js@1.95.8/lib/index.iife.min.js"></script>
 <script>
 /* ── Landing / wallet-gate / username / server flow ─────────────────────────── */
 (function () {
-  const TOKEN = '0xbc3ed2770b113fa60c461ebd4734429cb4b5cb07';
-  const BASE_RPC = 'https://mainnet.base.org';
-  const REQUIRED = 1000n;
+  // ── $DYMO token gate (Solana / Phantom) ───────────────────────────────────
+  // CHANGE THIS when the token mint changes:
+  const MINT = 'DrkxWKNSZecBY4MhMThGW5531ZUNnYFktBMeYrAYBAGS';
+  const REQUIRED = 1000;                                  // tokens needed to play
+  // Browser-friendly public Solana RPC. For production swap in a dedicated RPC
+  // (Helius/QuickNode) — the default mainnet-beta endpoint blocks token queries.
+  const SOLANA_RPC = 'https://solana-rpc.publicnode.com';
   let wallet = null;
   const $ = id => document.getElementById(id);
 
@@ -716,56 +721,61 @@
   }
   function msg(text, cls) { const m = $('wallet-msg'); m.textContent = text || ''; m.className = cls || ''; }
 
-  async function rpc(method, params) {
-    const r = await fetch(BASE_RPC, { method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ jsonrpc: '2.0', id: 1, method, params }) });
-    const j = await r.json();
-    if (j.error) throw new Error(j.error.message || 'rpc');
-    return j.result;
-  }
-  const pad = a => a.toLowerCase().replace('0x', '').padStart(64, '0');
-  const ethCall = data => rpc('eth_call', [{ to: TOKEN, data }, 'latest']);
-
-  async function ownsTokens(addr) {
-    const balHex = await ethCall('0x70a08231' + pad(addr));            // balanceOf(addr)
-    let decimals = 18n;
-    try { const d = await ethCall('0x313ce567'); if (d && d !== '0x') decimals = BigInt(parseInt(d, 16)); } catch {}
-    const bal = BigInt(balHex || '0x0');
-    return bal >= REQUIRED * (10n ** decimals);
+  // Classic SPL Token + Associated Token Account program IDs.
+  const TOKEN_PROGRAM_ID = 'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA';
+  const ATA_PROGRAM_ID   = 'ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL';
+  // Check the wallet's $DYMO balance via its associated token account, using
+  // getTokenAccountBalance — a light method every public RPC supports.
+  async function ownsTokens(ownerStr) {
+    const w3 = window.solanaWeb3;
+    if (!w3) throw new Error('solana library not loaded');
+    const owner = new w3.PublicKey(ownerStr);
+    const mint = new w3.PublicKey(MINT);
+    const [ata] = w3.PublicKey.findProgramAddressSync(
+      [owner.toBuffer(), new w3.PublicKey(TOKEN_PROGRAM_ID).toBuffer(), mint.toBuffer()],
+      new w3.PublicKey(ATA_PROGRAM_ID)
+    );
+    const conn = new w3.Connection(SOLANA_RPC, 'confirmed');
+    try {
+      const r = await conn.getTokenAccountBalance(ata);
+      return (r && r.value && r.value.uiAmount || 0) >= REQUIRED;
+    } catch (e) {
+      return false; // associated account doesn't exist → 0 balance
+    }
   }
 
   async function getUsername(addr) {
-    try { const r = await fetch('/api/user?wallet=' + addr); return (await r.json()).username || null; }
-    catch { return localStorage.getItem('daimyo_user_' + addr.toLowerCase()); }
+    try { const r = await fetch('/api/user?wallet=' + encodeURIComponent(addr)); return (await r.json()).username || null; }
+    catch { return localStorage.getItem('daimyo_user_' + addr); }
   }
   async function saveUsernameApi(addr, name) {
-    localStorage.setItem('daimyo_user_' + addr.toLowerCase(), name);
+    localStorage.setItem('daimyo_user_' + addr, name);
     try { await fetch('/api/user', { method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ wallet: addr, username: name }) }); } catch {}
   }
 
-  // Phantom wallet (multi-chain) — use its provider for the $DYMO contract.
-  function phantomProvider() {
-    return window.phantom?.ethereum || (window.ethereum && window.ethereum.isPhantom ? window.ethereum : null);
+  // Phantom's Solana provider.
+  function phantomSolana() {
+    return window.phantom?.solana || (window.solana && window.solana.isPhantom ? window.solana : null);
   }
   window.daimyoConnect = async function () {
     msg('');
-    const provider = phantomProvider();
+    const provider = phantomSolana();
     if (!provider) { msg('Phantom not found — please install the Phantom wallet to play.', 'err'); return; }
     const btn = $('play-btn'), cbtn = $('connect-btn'), old = btn.textContent;
     btn.disabled = true; btn.textContent = 'Connecting…'; cbtn.textContent = 'Connecting…';
     try {
-      const accts = await provider.request({ method: 'eth_requestAccounts' });
-      wallet = accts[0];
+      const resp = await provider.connect();
+      wallet = (resp && resp.publicKey ? resp.publicKey : provider.publicKey).toString();
       window.daimyoWallet = wallet;
-      cbtn.textContent = wallet.slice(0, 6) + '…' + wallet.slice(-4);
+      cbtn.textContent = wallet.slice(0, 4) + '…' + wallet.slice(-4);
       btn.textContent = 'Checking $DYMO…';
       if (!(await ownsTokens(wallet))) { msg('You must own 1,000 $DYMO to play.', 'err'); btn.disabled = false; btn.textContent = old; return; }
       msg('Wallet verified ✓', 'ok');
       const uname = await getUsername(wallet);
       btn.disabled = false; btn.textContent = old;
       if (uname) { window.daimyoUsername = uname; goServers(); }
-      else { $('username-wallet').textContent = '🔗 ' + wallet.slice(0, 6) + '…' + wallet.slice(-4); showScreen('username-screen'); setTimeout(() => $('username-input').focus(), 80); }
+      else { $('username-wallet').textContent = '🔗 ' + wallet.slice(0, 4) + '…' + wallet.slice(-4); showScreen('username-screen'); setTimeout(() => $('username-input').focus(), 80); }
     } catch (e) {
       msg(e && e.code === 4001 ? 'Connection rejected.' : 'Could not verify wallet — try again.', 'err');
       btn.disabled = false; btn.textContent = old; cbtn.textContent = 'Connect Wallet';
