@@ -143,8 +143,13 @@ class GameState {
       list.push({ id: 'b' + (idc++), model, x, z, rot, label, type, enterable: true });
       return true;
     };
-    const rnd = (a, b) => a + Math.random() * (b - a);
-    const pick = arr => arr[Math.floor(Math.random() * arr.length)];
+    // Seeded RNG → the world is IDENTICAL every server start (deterministic map).
+    // The terrain itself is already deterministic (noise-based); seeding the
+    // building placement makes the whole layout fixed and repeatable.
+    let seed = 0x1a2b3c4d;
+    const rand = () => { seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0; return seed / 4294967296; };
+    const rnd = (a, b) => a + rand() * (b - a);
+    const pick = arr => arr[Math.floor(rand() * arr.length)];
 
     // ── Capital town — buildings sit in the quadrants BETWEEN the two paths ──
     add('town_hall', cx + 40, cz + 32, -Math.PI * 0.75, 'Town Hall', 'townhall');
@@ -153,35 +158,37 @@ class GameState {
     add('church', cx - 40, cz - 32, Math.PI * 0.25, 'Church', 'temple');
     add('school', cx + 22, cz + 64, Math.PI, 'School', 'barracks');
     add('seed_store', cx - 22, cz - 64, 0, 'Seed Store', 'manor');
-    // Ring of houses hugging the capital. Try several radii per slot so they
-    // reliably land on buildable grass instead of failing on the paths/ring —
-    // this keeps the area the player actually spawns in looking populated.
+    // Dense concentric rings of houses filling ALL the grass around the capital.
+    // buildable() already rejects paths/dirt/water/the stone ring, so houses
+    // never land on sidewalks. Sweeping every angle at many radii fills the grass
+    // pockets evenly in all directions (no more clustering to one side).
     const ringLabels = ['Cottage', 'Cabin', 'House', 'Farmstead', 'Hut'];
-    for (let i = 0; i < 18; i++) {
-      const a = (i / 18) * Math.PI * 2 + 0.3;
-      for (const r of [96, 116, 138, 160, 184]) {
-        if (add(pick(houses), cx + Math.cos(a) * r, cz + Math.sin(a) * r, a + Math.PI, pick(ringLabels), 'house')) break;
+    for (const r of [88, 104, 120, 137, 155, 174, 194, 215]) {
+      const slots = Math.max(12, Math.round(r / 6.5));   // more slots as the ring grows
+      for (let i = 0; i < slots; i++) {
+        const a = (i / slots) * Math.PI * 2 + r * 0.017; // stagger each ring so they interleave
+        add(pick(houses), cx + Math.cos(a) * r, cz + Math.sin(a) * r, a + Math.PI, pick(ringLabels), 'house');
       }
     }
 
-    // ── Scattered villages ──
+    // ── Scattered villages further out ──
     const names = ['Oakhaven', 'Millbrook', 'Stonewell', 'Riverside', 'Greenhollow', 'Ashford', 'Thornwood', 'Eastmere'];
     for (let v = 0; v < 14; v++) {
       const ang = (v / 14) * Math.PI * 2 + rnd(-0.35, 0.35);
-      const dist = rnd(150, 500);
+      const dist = rnd(240, 520);
       const vx = cx + Math.cos(ang) * dist, vz = cz + Math.sin(ang) * dist;
       if (!buildable(vx, vz)) continue;
       const nm = names[v % names.length];
       add(pick(stores), vx, vz, rnd(0, Math.PI * 2), nm + ' Store', 'inn');
-      const n = 5 + Math.floor(Math.random() * 4);
+      const n = 5 + Math.floor(rand() * 4);
       for (let i = 0; i < n; i++) { const a = (i / n) * Math.PI * 2 + rnd(-0.2, 0.2); const r = rnd(20, 46); add(pick(houses), vx + Math.cos(a) * r, vz + Math.sin(a) * r, a + Math.PI, 'House', 'house'); }
     }
 
-    // ── Lone random buildings dotted across the map ──
+    // ── Lone buildings dotted across the rest of the map ──
     const lone = houses.concat(['beach_hut', 'mine_entrance', 'house_gen2', 'house_gen4']);
     const labels = ['Cottage', 'Hut', 'Cabin', 'Farmstead', 'Outpost', 'Shack'];
     for (let i = 0; i < 70; i++) {
-      const ang = rnd(0, Math.PI * 2), dist = rnd(80, 560);
+      const ang = rnd(0, Math.PI * 2), dist = rnd(150, 560);
       add(pick(lone), cx + Math.cos(ang) * dist, cz + Math.sin(ang) * dist, rnd(0, Math.PI * 2), pick(labels), 'house');
     }
 
